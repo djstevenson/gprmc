@@ -1,2 +1,31 @@
 # carton snapshot format: version 1.0
 DISTRIBUTIONS
+  File-Copy-Recursive-Reduced-0.006
+    pathname: J/JK/JKEENAN/File-Copy-Recursive-Reduced-0.006.tar.gz
+    provides:
+      File::Copy::Recursive::Reduced 0.006
+    requirements:
+      ExtUtils::MakeMaker 0
+      File::Copy 0
+      File::Find 0
+      File::Path 0
+      File::Spec 0
+      perl 5.008000
+  FindBin-libs-v3.0.2
+    pathname: L/LE/LEMBARK/FindBin-libs-v3.0.2.tar.gz
+    provides:
+      FindBin::libs 3.000000
+    requirements:
+      Carp 0
+      Cwd 3.073000
+      ExtUtils::MakeMaker 0
+      File::Basename 0
+      File::Copy::Recursive::Reduced 0.006000
+      File::Spec::Functions 0
+      File::Temp 0
+      FindBin 0
+      List::Util 0
+      Symbol 0
+      Test::More 0
+      strict 0
+      version 0
