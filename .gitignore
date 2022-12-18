@@ -1,0 +1,52 @@
+# /
+.svn/
+.vscode
+.DS_Store
+._.
+/conf/local/dev
+/local
+/messagefocus_web_local.conf
+/messagefocus_web.conf_koi
+/node_modules
+/coverage
+/perl5.14.4.core
+/.prove
+/nytprof.out
+/coverage
+/.perldb
+
+# Common temp files
+# From: https://github.com/github/gitignore/blob/master/Global/Vim.gitignore
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+[._]s[a-v][a-z]
+[._]sw[a-p]
+*~
+Session.vim
+.netrwhist
+tags
+
+# Build process (see makefile)
+/messagefocus_*.tar.gz
+/test_output
+/temp_*
+
+# /logs/
+/logs
+
+# /monitoring/
+/monitoring/data
+/monitoring/monitoring.conf
+
+# /root/
+/root/accounts
+
+/root/static/bundles
+
+# /script/
+/script/mf-connect
+/script/mf-server
+
+/node_modules
+
+
