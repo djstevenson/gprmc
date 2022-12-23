@@ -6,6 +6,7 @@ use v5.36;
 # exiftool -ee /Users/davids/Desktop/220719_144732_219_FH.MP4 | carton exec -- gprmc.pl
 
 use FindBin::libs;
+use DateTime;
 
 binmode(STDIN);
 
@@ -20,7 +21,7 @@ while (my $line = <STDIN>) {
         Text\s+:\s          # Text indicator
         .*?                 # Skip other bin data
         \$GPRMC,            # Sentence identifier
-        ([\d\.]+),          # UTC Time
+        ([\d\.]+),          # UTC Time hhmmss.sss
         A,                  # A indicates valid (v = invalid)
         (\d+\.\d+),         # Latitude 5151.46603    ddmm.mmmmm
         ([NS]),             # Lat N or S
@@ -28,7 +29,7 @@ while (my $line = <STDIN>) {
         ([EW]),             # Long E or W
         (\d+\.\d+),         # Speed in knots
         (\d+\.\d+),         # Course, degrees (magnetic or true?)
-        (\d\d\d\d\d\d),     # Date DDMMYY
+        (\d\d\d\d\d\d),     # UTC Date DDMMYY
         ,,                  # Not used, Magnetic variation
         [ADE]               # Mode A=Autonomous, D=DGPS, E=DR, always A for NextBase
         \*[[:xdigit:]]{2}   # Checksum
@@ -36,9 +37,35 @@ while (my $line = <STDIN>) {
 
     my ($utc_time, $latitude, $ns, $longitude, $ew, $knots, $course, $date) = @{^CAPTURE};
 
+    my $dt = format_datetime($date, $utc_time);
+
     my ($lat_deg, $long_deg) = format_lat_long($latitude, $ns, $longitude, $ew);
     my $mph = format_speed($knots);
-    printf("%s %f %f : %f %f\n", $utc_time, $lat_deg, $long_deg, $mph, $course);
+    printf("%s %.5f %.5f : %dmph %d˚\n", $dt, $lat_deg, $long_deg, round($mph), round($course));
+}
+
+sub round($f) {
+    return int($f+0.5);
+}
+
+sub format_datetime($date, $time) {
+    # $date is DDMMYY
+    # $time is hhmmss.sss
+    # All in UTC
+
+    my ($day, $mon, $year) = $date =~ /^(\d\d)(\d\d)(\d\d)$/;
+    my ($hour, $min, $sec) = $time =~ /^(\d\d)(\d\d)(\d\d\.\d\d\d)$/;
+
+    return DateTime->new(
+        year       => 2000 + $year,
+        month      => $mon,
+        day        => $day,
+        hour       => $hour,
+        minute     => $min,
+        second     => int($sec),
+        nanosecond => int(($sec-int($sec)) * 1_000_000),
+        time_zone  => 'UTC',
+    );
 }
 
 sub format_speed($knots) {
