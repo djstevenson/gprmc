@@ -41,7 +41,34 @@ while (my $line = <STDIN>) {
 
     my ($lat_deg, $long_deg) = format_lat_long($latitude, $ns, $longitude, $ew);
     my $mph = format_speed($knots);
-    printf("%s %.5f %.5f : %dmph %d˚\n", $dt, $lat_deg, $long_deg, round($mph), round($course));
+
+
+
+    ## Altitude comes from GPGGA sentence
+    # $GPGGA,134747.300,5151.46603,N,00351.17490,W,1,15,0.73,399.4,M,51.5,M,,*6C
+    next unless $line =~ /
+        ^
+        Text\s+:\s          # Text indicator
+        .*?                 # Skip other bin data
+        \$GPGGA,            # Sentence identifier
+        [\d\.]+,            # UTC Time hhmmss.sss
+        \d+\.\d+,           # Latitude 5151.46603    ddmm.mmmmm
+        [NS],               # Lat N or S
+        \d+\.\d+,           # Longitude 00351.18737  dddmm.mmmmm
+        [EW],               # Long E or W
+        1,                  # Fix quality (want 1)
+        \d\d,               # Satellite count
+        [\d\.]+,            # Horizontal dilution
+        ([\d\.]+),          # Height in metres
+        M,                  # Not used, indicates metres?
+        [\d\.]+,            # Geoidal separation (metres)
+        M,,                 # Not used, indicates metres?
+        \*[[:xdigit:]]{2}   # Checksum
+    /x;
+
+    my ($altitude) = @{^CAPTURE};
+
+    printf("DT=%s (%.5f, %.5f) : V=%d C=%d˚ A=%.1f\n", $dt, $lat_deg, $long_deg, round($mph), round($course), $altitude);
 }
 
 sub round($f) {
@@ -94,7 +121,7 @@ sub format_lat_long($lat, $ns, $long, $ew) {
     }
     if ($long =~ /^(\d\d\d)(\d+.\d+)$/) {
         $longitude = $1 + $2/60;
-        $longitude *= $ew eq 'W' ? 1 : -1;
+        $longitude *= $ew eq 'W' ? -1 : 1;
     }
     else {
         die "Invalid longitude $long";
