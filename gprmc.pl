@@ -139,7 +139,7 @@ sub format_lat_long($lat, $ns, $long, $ew) {
     return { lat => $latitude, long => $longitude};
 }
 
-sub gauge_lat_long($lat_long) {
+sub gauge_lat_long($lat_long, $altitude) {
     my $lat      = $lat_long->{lat};
     my $long     = $lat_long->{long};
 
@@ -148,6 +148,8 @@ sub gauge_lat_long($lat_long) {
 
     my $ns       = $lat  < 0 ? 'S' : 'N';
     my $ew       = $long < 0 ? 'W' : 'E';
+
+    my $formatted_altitude = sprintf('%.1f', $altitude);
 
     return <<HTML;
 <div>
@@ -158,7 +160,7 @@ sub gauge_lat_long($lat_long) {
         <text x="90" y="25" fill="#333333" font-family="Helvetica, sans-serif" dominant-baseline="middle" text-anchor="end" font-size="1em" font-weight="bold">${ns}</text>
         <text x="75" y="50" fill="#333333" font-family="Helvetica, sans-serif" dominant-baseline="middle" text-anchor="end" font-size="1em" font-weight="bold">${abs_long}˚</text>
         <text x="90" y="50" fill="#333333" font-family="Helvetica, sans-serif" dominant-baseline="middle" text-anchor="end" font-size="1em" font-weight="bold">$ew</text>
-        <text x="75" y="75" fill="#333333" font-family="Helvetica, sans-serif" dominant-baseline="middle" text-anchor="end" font-size="1em" font-weight="normal">321.4m</text>
+        <text x="75" y="75" fill="#333333" font-family="Helvetica, sans-serif" dominant-baseline="middle" text-anchor="end" font-size="1em" font-weight="normal">${formatted_altitude}m</text>
         <text x="90" y="75" fill="#333333" font-family="Helvetica, sans-serif" dominant-baseline="middle" text-anchor="end" font-size="1em" font-weight="normal">&uarr;</text>
     </svg>
 </div>
@@ -172,7 +174,7 @@ sub gauge_speed($speed) {
     my $dial_angle   = 1.0 - ($dial_gap_deg / 360.0);
     my $radius       = 40;
     my $panel_width  = 100;
-    my $half_width   = $panel_width/2.0;
+    my $half_width   = $panel_width / 2.0;
     my $min_speed    = 0;
     my $max_speed    = 70;
 
@@ -212,14 +214,49 @@ sub gauge_speed($speed) {
 HTML
 }
 
+sub gauge_course($course) {
+
+    my $panel_width   = 100;
+    my $half_width    = $panel_width / 2.0;
+
+    my $radius        = 40;
+
+    my $blob_x        = $half_width + $radius * sin(deg2rad($course));
+    my $blob_y        = $half_width - $radius * cos(deg2rad($course));
+
+    my $pointer_angle = 3;
+    my $ptr_x_1       = $half_width + $radius * sin(deg2rad($course + $pointer_angle));
+    my $ptr_y_1       = $half_width - $radius * cos(deg2rad($course + $pointer_angle));
+    my $ptr_x_2       = $half_width + $radius * sin(deg2rad($course - $pointer_angle));
+    my $ptr_y_2       = $half_width - $radius * cos(deg2rad($course - $pointer_angle));
+
+    my $round_course = round($course);
+
+    # <path d="M50 50 L${blob_x} ${blob_y}" stroke="#f0f0f0" stroke-width="2"/>
+
+    return <<HTML;
+<div>
+    <svg width="100" height="100">
+        <path d="M0 0 L0 100 L100 100 L100 0 Z" stroke="black" stroke-width="1" fill="none"/>
+
+        <circle cx="50" cy="50" r="40" stroke="#e0e0e0" stroke-width="5" fill="none" />
+        <path d="M50 50 L${ptr_x_1} ${ptr_y_1} L${ptr_x_2} ${ptr_y_2} Z" fill="#e8e8e8" />
+        <circle cx="${blob_x}" cy="${blob_y}" r="6" fill="#55aa11" />
+        <text x="50" y="50" fill="#55aa11" font-family="Helvetica, sans-serif" dominant-baseline="middle" text-anchor="middle" font-size="1.5em" font-weight="bold">${round_course}</text>
+        <text x="50" y="68" fill="#555555" font-family="Helvetica, sans-serif" dominant-baseline="middle" text-anchor="middle" font-size="0.75em" >course</text>
+    </svg>
+</div>
+HTML
+}
+
 sub write_html($file_no, $data) {
     my $html_filename = sprintf('/tmp/gauges%04d.html', $file_no);
     open(my $fh, '>', $html_filename);
     binmode($fh);
 
-    my $lat_long = gauge_lat_long($data->{lat_long});
+    my $lat_long = gauge_lat_long($data->{lat_long}, $data->{altitude});
     my $speed    = gauge_speed($data->{speed});
-
+    my $course   = gauge_course($data->{course});
 
     print $fh <<HTML;
 <!DOCTYPE html>
@@ -234,17 +271,7 @@ $lat_long
   <!-- SPEED -->
 $speed
   <!-- COURSE -->
-  <div>
-    <svg width="100" height="100">
-      <path d="M0 0 L0 100 L100 100 L100 0 Z" stroke="black" stroke-width="1" fill="none"/>
-
-      <circle cx="50" cy="50" r="40" stroke="#e0e0e0" stroke-width="5" fill="none" />
-      <path d="M50 50 L89.9756330807638 51.3959798681" stroke="#f0f0f0" stroke-width="2"/>
-      <circle cx="89.9756330807638" cy="51.3959798681" r="6" fill="#55aa11" />
-      <text x="50" y="50" fill="#55aa11" font-family="Helvetica, sans-serif" dominant-baseline="middle" text-anchor="middle" font-size="1.5em" font-weight="bold">92</text>
-      <text x="50" y="68" fill="#555555" font-family="Helvetica, sans-serif" dominant-baseline="middle" text-anchor="middle" font-size="0.75em" >course</text>
-    </svg>
-  </div>
+$course
 
   <!-- ELEVATION -->
   <div>
