@@ -7,9 +7,11 @@ use v5.36;
 
 use FindBin::libs;
 use DateTime;
+use Math::Trig;
 
 binmode(STDIN);
 
+my $file_no = 1;
 while (my $line = <STDIN>) {
     chomp $line;
 
@@ -39,9 +41,8 @@ while (my $line = <STDIN>) {
 
     my $dt = format_datetime($date, $utc_time);
 
-    my ($lat_deg, $long_deg) = format_lat_long($latitude, $ns, $longitude, $ew);
+    my $lat_long = format_lat_long($latitude, $ns, $longitude, $ew);
     my $mph = format_speed($knots);
-
 
 
     ## Altitude comes from GPGGA sentence
@@ -68,7 +69,15 @@ while (my $line = <STDIN>) {
 
     my ($altitude) = @{^CAPTURE};
 
-    printf("DT=%s (%.5f, %.5f) : V=%d C=%d˚ A=%.1f\n", $dt, $lat_deg, $long_deg, round($mph), round($course), $altitude);
+    write_html($file_no, {
+        date_time => $dt,
+        lat_long  => $lat_long,
+        speed     => $mph,
+        course    => $course,
+        altitude  => $altitude,
+    });
+
+    $file_no++;
 }
 
 sub round($f) {
@@ -127,5 +136,146 @@ sub format_lat_long($lat, $ns, $long, $ew) {
         die "Invalid longitude $long";
     }
 
-    return ($latitude, $longitude);
+    return { lat => $latitude, long => $longitude};
+}
+
+sub gauge_lat_long($lat_long) {
+    my $lat      = $lat_long->{lat};
+    my $long     = $lat_long->{long};
+
+    my $abs_lat  = sprintf('%.4f', abs($lat));
+    my $abs_long = sprintf('%.4f', abs($long));
+
+    my $ns       = $lat  < 0 ? 'S' : 'N';
+    my $ew       = $long < 0 ? 'W' : 'E';
+
+    return <<HTML;
+<div>
+    <svg width="100" height="100">
+        <path d="M0 0 L0 100 L100 100 L100 0 Z" stroke="black" stroke-width="1" fill="none"/>
+
+        <text x="75" y="25" fill="#333333" font-family="Helvetica, sans-serif" dominant-baseline="middle" text-anchor="end" font-size="1em" font-weight="bold">${abs_lat}˚</text>
+        <text x="90" y="25" fill="#333333" font-family="Helvetica, sans-serif" dominant-baseline="middle" text-anchor="end" font-size="1em" font-weight="bold">${ns}</text>
+        <text x="75" y="50" fill="#333333" font-family="Helvetica, sans-serif" dominant-baseline="middle" text-anchor="end" font-size="1em" font-weight="bold">${abs_long}˚</text>
+        <text x="90" y="50" fill="#333333" font-family="Helvetica, sans-serif" dominant-baseline="middle" text-anchor="end" font-size="1em" font-weight="bold">$ew</text>
+        <text x="75" y="75" fill="#333333" font-family="Helvetica, sans-serif" dominant-baseline="middle" text-anchor="end" font-size="1em" font-weight="normal">321.4m</text>
+        <text x="90" y="75" fill="#333333" font-family="Helvetica, sans-serif" dominant-baseline="middle" text-anchor="end" font-size="1em" font-weight="normal">&uarr;</text>
+    </svg>
+</div>
+HTML
+}
+
+sub gauge_speed($speed) {
+    my $round_speed = round($speed);
+
+    my $dial_gap_deg = 90;
+    my $dial_angle   = 1.0 - ($dial_gap_deg / 360.0);
+    my $radius       = 40;
+    my $panel_width  = 100;
+    my $half_width   = $panel_width/2.0;
+    my $min_speed    = 0;
+    my $max_speed    = 70;
+
+    my $half_gap_rad = pi * (1-$dial_angle);
+
+    my $x_offset     = $radius * sin($half_gap_rad);
+    my $y_offset     = $radius * cos($half_gap_rad);
+
+    my $start_x      = $half_width - $x_offset;
+    my $start_y      = $half_width + $y_offset;
+    my $end_x        = $half_width + $x_offset;
+    my $end_y        = $half_width + $y_offset;
+    
+    my $angle_min    = $dial_gap_deg/2.0;
+    my $angle_max    = 360.0 - $angle_min;
+
+    my $current_value = $speed / ($max_speed - $min_speed);
+    my $value_angle  = $angle_min + ($angle_max - $angle_min) * $current_value;
+    my $value_end_x  = $half_width - $radius * sin(deg2rad($value_angle));
+    my $value_end_y  = $half_width + $radius * cos(deg2rad($value_angle));
+
+    my $curve_bg     = sprintf('M%f %f A%d %d 0 1 1 %f %f', $start_x, $start_y, $radius, $radius, $end_x, $end_y);
+    my $large_arc    = $value_angle > (180 + $dial_gap_deg/2) ? 1 : 0;
+    my $curve_fg     = sprintf('M%f %f A%d %d 0 %d 1 %f %f', $start_x, $start_y, $radius, $radius, $large_arc, $value_end_x, $value_end_y);
+
+    return <<HTML;
+    <div>
+        <svg width="100" height="100">
+            <path d="M0 0 L0 100 L100 100 L100 0 Z" stroke="black" stroke-width="1" fill="none"/>
+
+            <path d="${curve_bg}" stroke="#e0e0e0" stroke-width="5" fill="none" stroke-linecap="round" />
+            <path d="${curve_fg}" stroke="#55aa11" stroke-width="10" fill="none" stroke-linecap="round" />
+            <text x="50" y="50" fill="#55aa11" font-family="Helvetica, sans-serif" dominant-baseline="middle" text-anchor="middle" font-size="2em" font-weight="bold">${round_speed}</text>
+            <text x="50" y="68" fill="#555555" font-family="Helvetica, sans-serif" dominant-baseline="middle" text-anchor="middle" font-size="0.75em" >mph</text>
+        </svg>
+    </div>
+HTML
+}
+
+sub write_html($file_no, $data) {
+    my $html_filename = sprintf('/tmp/gauges%04d.html', $file_no);
+    open(my $fh, '>', $html_filename);
+    binmode($fh);
+
+    my $lat_long = gauge_lat_long($data->{lat_long});
+    my $speed    = gauge_speed($data->{speed});
+
+
+    print $fh <<HTML;
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Black Mountain Pass</title>
+</head>
+<body>
+  <!-- LOCATION -->
+$lat_long
+  <!-- SPEED -->
+$speed
+  <!-- COURSE -->
+  <div>
+    <svg width="100" height="100">
+      <path d="M0 0 L0 100 L100 100 L100 0 Z" stroke="black" stroke-width="1" fill="none"/>
+
+      <circle cx="50" cy="50" r="40" stroke="#e0e0e0" stroke-width="5" fill="none" />
+      <path d="M50 50 L89.9756330807638 51.3959798681" stroke="#f0f0f0" stroke-width="2"/>
+      <circle cx="89.9756330807638" cy="51.3959798681" r="6" fill="#55aa11" />
+      <text x="50" y="50" fill="#55aa11" font-family="Helvetica, sans-serif" dominant-baseline="middle" text-anchor="middle" font-size="1.5em" font-weight="bold">92</text>
+      <text x="50" y="68" fill="#555555" font-family="Helvetica, sans-serif" dominant-baseline="middle" text-anchor="middle" font-size="0.75em" >course</text>
+    </svg>
+  </div>
+
+  <!-- ELEVATION -->
+  <div>
+    <svg width="100" height="100">
+      <path d="M0 0 L0 100 L100 100 L100 0 Z" stroke="black" stroke-width="1" fill="none"/>
+
+      <path d="
+        M10 80
+        C10 70 20 90 20 80
+        S30 90 30 80
+        S40 90 40 80
+        S50 90 50 80
+        S60 90 60 80
+        S70 90 70 80
+        S80 90 80 80
+        " stroke="#2E8B82" stroke-width="4" fill="none"/>
+      <path d="
+        M86 80 L94 80
+        M90 80 L90 10
+        M86 10 L94 10
+        " stroke="#999999" stroke-width="1" fill="none"/>
+      <text x="45" y="40" fill="#55aa11" font-family="Helvetica, sans-serif" dominant-baseline="middle" text-anchor="middle" font-size="1.5em" font-weight="bold">372.4</text>
+      <text x="45" y="58" fill="#555555" font-family="Helvetica, sans-serif" dominant-baseline="middle" text-anchor="middle" font-size="0.75em">m a.s.l.</text>
+    </svg>
+  </div>
+
+</body>
+</html>
+HTML
+
+    my $image_filename = sprintf('output/image%04d.png', $file_no);
+    print "Write $image_filename\n";
+    system("/usr/local/bin/wkhtmltoimage --quality 100 ${html_filename} ${image_filename} &");
 }
