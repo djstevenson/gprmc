@@ -14,6 +14,7 @@ binmode(STDIN);
 
 my $file_no = 1;
 my $p = Parallel::Subs->new(max_process_per_cpu => 2);
+my $old_alt;
 while (my $line = <STDIN>) {
     chomp $line;
 
@@ -78,8 +79,10 @@ while (my $line = <STDIN>) {
         speed     => $mph,
         course    => $course,
         altitude  => $altitude,
+        old_alt   => $old_alt,
     };
-    $p->add( sub { write_html($data) });
+    $p->add( sub { write_html($data)});
+    $old_alt = $altitude;
 
     $file_no++;
 }
@@ -146,9 +149,7 @@ sub format_lat_long($lat, $ns, $long, $ew) {
     return { lat => $latitude, long => $longitude};
 }
 
-sub gauge_lat_long($lat_long, $altitude) {
-
-    state $previous_altitude;
+sub gauge_lat_long($lat_long, $altitude, $old_alt) {
 
     my $lat      = $lat_long->{lat};
     my $long     = $lat_long->{long};
@@ -161,15 +162,14 @@ sub gauge_lat_long($lat_long, $altitude) {
 
     my $formatted_altitude = sprintf('%.1f', $altitude);
     my $arrow = '-';
-    if (defined $previous_altitude) {
-        if ($altitude > $previous_altitude) {
+    if (defined $old_alt) {
+        if ($altitude > $old_alt) {
             $arrow = '&uarr;'
         }
-        elsif ($altitude < $previous_altitude) {
+        elsif ($altitude < $old_alt) {
             $arrow = '&darr;'
         }
     }
-    $previous_altitude = $altitude;
 
     return <<HTML;
 <div>
@@ -301,7 +301,7 @@ sub write_html($data) {
     open(my $fh, '>', $html_filename);
     binmode($fh);
 
-    my $lat_long  = gauge_lat_long($data->{lat_long}, $data->{altitude});
+    my $lat_long  = gauge_lat_long($data->{lat_long}, $data->{altitude}, $data->{old_alt});
     my $speed     = gauge_speed($data->{speed});
     my $course    = gauge_course($data->{course});
     my $elevation = gauge_elevation($data->{altitude});
