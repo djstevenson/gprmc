@@ -8,10 +8,12 @@ use v5.36;
 use FindBin::libs;
 use DateTime;
 use Math::Trig;
+use Parallel::Subs;
 
 binmode(STDIN);
 
 my $file_no = 1;
+my $p = Parallel::Subs->new(max_process_per_cpu => 1);
 while (my $line = <STDIN>) {
     chomp $line;
 
@@ -69,16 +71,21 @@ while (my $line = <STDIN>) {
 
     my ($altitude) = @{^CAPTURE};
 
-    write_html($file_no, {
+    my $data = {
+        file_no   => $file_no,
         date_time => $dt,
         lat_long  => $lat_long,
         speed     => $mph,
         course    => $course,
         altitude  => $altitude,
-    });
+    };
+    $p->add( sub { write_html($data) });
 
     $file_no++;
 }
+
+$p->wait_for_all;
+
 
 sub round($f) {
     return int($f+0.5);
@@ -289,8 +296,8 @@ return <<HTML;
 HTML
 }
 
-sub write_html($file_no, $data) {
-    my $html_filename = sprintf('/tmp/gauges%04d.html', $file_no);
+sub write_html($data) {
+    my $html_filename = sprintf('/tmp/gauges%04d.html', $data->{file_no});
     open(my $fh, '>', $html_filename);
     binmode($fh);
 
@@ -315,7 +322,7 @@ ${elevation}
 </html>
 HTML
 
-    my $image_filename = sprintf('output/image%04d.png', $file_no);
+    my $image_filename = sprintf('output/image%04d.png', $data->{file_no});
     print "Write $image_filename\n";
     system("/usr/local/bin/wkhtmltoimage --quality 100 ${html_filename} ${image_filename}");
 }
