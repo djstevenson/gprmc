@@ -604,6 +604,20 @@ DISTRIBUTIONS
       Test::More 0
       strict 0
       version 0
+  IPC-Run-20220807.0
+    pathname: T/TO/TODDR/IPC-Run-20220807.0.tar.gz
+    provides:
+      IPC::Run 20220807.0
+      IPC::Run::Debug 20220807.0
+      IPC::Run::IO 20220807.0
+      IPC::Run::Timer 20220807.0
+      IPC::Run::Win32Helper 20220807.0
+      IPC::Run::Win32IO 20220807.0
+      IPC::Run::Win32Process 20220807.0
+      IPC::Run::Win32Pump 20220807.0
+    requirements:
+      ExtUtils::MakeMaker 0
+      Test::More 0.47
   MRO-Compat-0.15
     pathname: H/HA/HAARG/MRO-Compat-0.15.tar.gz
     provides:
