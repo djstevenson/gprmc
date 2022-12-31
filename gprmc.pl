@@ -13,7 +13,7 @@ use Parallel::Subs;
 binmode(STDIN);
 
 my $file_no = 1;
-my $p = Parallel::Subs->new(max_process_per_cpu => 1);
+my $p = Parallel::Subs->new(max_process_per_cpu => 2);
 while (my $line = <STDIN>) {
     chomp $line;
 
