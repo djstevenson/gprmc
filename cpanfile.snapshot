@@ -18,6 +18,21 @@ DISTRIBUTIONS
       perl 5.006001
       strict 0
       warnings 0
+  Capture-Tiny-0.48
+    pathname: D/DA/DAGOLDEN/Capture-Tiny-0.48.tar.gz
+    provides:
+      Capture::Tiny 0.48
+    requirements:
+      Carp 0
+      Exporter 0
+      ExtUtils::MakeMaker 6.17
+      File::Spec 0
+      File::Temp 0
+      IO::Handle 0
+      Scalar::Util 0
+      perl 5.006
+      strict 0
+      warnings 0
   Class-Data-Inheritable-0.09
     pathname: R/RS/RSHERER/Class-Data-Inheritable-0.09.tar.gz
     provides:
@@ -34,6 +49,19 @@ DISTRIBUTIONS
       File::Spec 0.80
       base 0
       perl 5.008
+  Class-Method-Modifiers-2.13
+    pathname: E/ET/ETHER/Class-Method-Modifiers-2.13.tar.gz
+    provides:
+      Class::Method::Modifiers 2.13
+    requirements:
+      B 0
+      Carp 0
+      Exporter 0
+      ExtUtils::MakeMaker 0
+      base 0
+      perl 5.006
+      strict 0
+      warnings 0
   Class-Singleton-1.6
     pathname: S/SH/SHAY/Class-Singleton-1.6.tar.gz
     provides:
@@ -583,6 +611,40 @@ DISTRIBUTIONS
     requirements:
       ExtUtils::MakeMaker 0
       perl 5.006
+  Mac-PropertyList-1.504
+    pathname: B/BD/BDFOY/Mac-PropertyList-1.504.tar.gz
+    provides:
+      Mac::PropertyList 1.504
+      Mac::PropertyList::Boolean 1.504
+      Mac::PropertyList::Container 1.504
+      Mac::PropertyList::Item 1.504
+      Mac::PropertyList::LineListSource 1.504
+      Mac::PropertyList::ReadBinary 1.504
+      Mac::PropertyList::Scalar 1.504
+      Mac::PropertyList::Source 1.504
+      Mac::PropertyList::TextSource 1.504
+      Mac::PropertyList::WriteBinary 1.504
+      Mac::PropertyList::array 1.504
+      Mac::PropertyList::data 1.504
+      Mac::PropertyList::date 1.504
+      Mac::PropertyList::dict 1.504
+      Mac::PropertyList::false 1.504
+      Mac::PropertyList::integer 1.504
+      Mac::PropertyList::real 1.504
+      Mac::PropertyList::string 1.504
+      Mac::PropertyList::true 1.504
+      Mac::PropertyList::uid 1.504
+      Mac::PropertyList::ustring 1.504
+    requirements:
+      ExtUtils::MakeMaker 6.64
+      File::Spec::Functions 0
+      MIME::Base64 0
+      Math::BigInt 0
+      Scalar::Util 1.11
+      Time::Local 0
+      XML::Entities 0
+      parent 0
+      perl 5.010
   Module-Build-0.4232
     pathname: L/LE/LEONT/Module-Build-0.4232.tar.gz
     provides:
@@ -649,6 +711,33 @@ DISTRIBUTIONS
       perl 5.006
       strict 0
       warnings 0
+  Moo-2.005004
+    pathname: H/HA/HAARG/Moo-2.005004.tar.gz
+    provides:
+      Method::Generate::Accessor undef
+      Method::Generate::BuildAll undef
+      Method::Generate::Constructor undef
+      Method::Generate::DemolishAll undef
+      Moo 2.005004
+      Moo::HandleMoose undef
+      Moo::HandleMoose::FakeConstructor undef
+      Moo::HandleMoose::FakeMetaClass undef
+      Moo::HandleMoose::_TypeMap undef
+      Moo::Object undef
+      Moo::Role 2.005004
+      Moo::_Utils undef
+      Moo::sification undef
+      oo undef
+    requirements:
+      Carp 0
+      Class::Method::Modifiers 1.10
+      Exporter 0
+      ExtUtils::MakeMaker 0
+      Role::Tiny 2.002003
+      Scalar::Util 1.00
+      Sub::Defer 2.006006
+      Sub::Quote 2.006006
+      perl 5.006
   Package-Stash-0.40
     pathname: E/ET/ETHER/Package-Stash-0.40.tar.gz
     provides:
@@ -679,6 +768,33 @@ DISTRIBUTIONS
       perl 5.008001
       strict 0
       warnings 0
+  Parallel-ForkManager-2.02
+    pathname: Y/YA/YANICK/Parallel-ForkManager-2.02.tar.gz
+    provides:
+      Parallel::ForkManager 2.02
+      Parallel::ForkManager::Child 2.02
+    requirements:
+      Carp 0
+      ExtUtils::MakeMaker 0
+      File::Path 0
+      File::Spec 0
+      File::Temp 0
+      Moo 0
+      Moo::Role 0
+      POSIX 0
+      Storable 0
+      perl 5.006
+      strict 0
+      warnings 0
+  Parallel-Subs-0.002
+    pathname: A/AT/ATOOMIC/Parallel-Subs-0.002.tar.gz
+    provides:
+      Parallel::Subs 0.002
+    requirements:
+      ExtUtils::MakeMaker 0
+      Parallel::ForkManager 0
+      Sys::Info 0
+      perl 5.010
   Params-ValidationCompiler-0.30
     pathname: D/DR/DROLSKY/Params-ValidationCompiler-0.30.tar.gz
     provides:
@@ -797,6 +913,43 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 0
       Scalar::Util 0
       perl 5.006
+  Sys-Info-0.7811
+    pathname: B/BU/BURAK/Sys-Info-0.7811.tar.gz
+    provides:
+      Sys::Info 0.7811
+    requirements:
+      ExtUtils::MakeMaker 0
+      Sys::Info::Base 0.78
+      Sys::Info::Driver::OSX 0.78
+      perl 5.010
+  Sys-Info-Base-0.7807
+    pathname: B/BU/BURAK/Sys-Info-Base-0.7807.tar.gz
+    provides:
+      Sys::Info::Base 0.7807
+      Sys::Info::Constants 0.7807
+      Sys::Info::Device 0.7807
+      Sys::Info::Device::CPU 0.7807
+      Sys::Info::Driver 0.7807
+      Sys::Info::Helper 0.7807
+      Sys::Info::OS 0.7807
+    requirements:
+      ExtUtils::MakeMaker 0
+      Text::Template::Simple 0
+      perl 5.010
+  Sys-Info-Driver-OSX-0.7960
+    pathname: B/BU/BURAK/Sys-Info-Driver-OSX-0.7960.tar.gz
+    provides:
+      Sys::Info::Driver::OSX 0.7960
+      Sys::Info::Driver::OSX::Device 0.7960
+      Sys::Info::Driver::OSX::Device::CPU 0.7960
+      Sys::Info::Driver::OSX::OS 0.7960
+    requirements:
+      Capture::Tiny 0
+      ExtUtils::MakeMaker 0
+      Mac::PropertyList 0
+      Sys::Info::Base 0.7802
+      parent 0
+      perl 5.010
   Test-Fatal-0.016
     pathname: R/RJ/RJBS/Test-Fatal-0.016.tar.gz
     provides:
@@ -809,6 +962,28 @@ DISTRIBUTIONS
       Try::Tiny 0.07
       strict 0
       warnings 0
+  Text-Template-Simple-0.91
+    pathname: B/BU/BURAK/Text-Template-Simple-0.91.tar.gz
+    provides:
+      Text::Template::Simple 0.91
+      Text::Template::Simple::Base::Compiler 0.91
+      Text::Template::Simple::Base::Examine 0.91
+      Text::Template::Simple::Base::Include 0.91
+      Text::Template::Simple::Base::Parser 0.91
+      Text::Template::Simple::Cache 0.91
+      Text::Template::Simple::Cache::ID 0.91
+      Text::Template::Simple::Caller 0.91
+      Text::Template::Simple::Compiler 0.91
+      Text::Template::Simple::Compiler::Safe 0.91
+      Text::Template::Simple::Constants 0.91
+      Text::Template::Simple::Dummy 0.91
+      Text::Template::Simple::IO 0.91
+      Text::Template::Simple::Tokenizer 0.91
+      Text::Template::Simple::Util 0.91
+    requirements:
+      Digest::MD5 1
+      ExtUtils::MakeMaker 0
+      perl 5.010
   Try-Tiny-0.31
     pathname: E/ET/ETHER/Try-Tiny-0.31.tar.gz
     provides:
@@ -839,6 +1014,15 @@ DISTRIBUTIONS
       XSLoader 0
       base 0
       lib 0
+      perl 5.008
+  XML-Entities-1.0002
+    pathname: S/SI/SIXTEASE/XML-Entities-1.0002.tar.gz
+    provides:
+      XML::Entities 1.0002
+      XML::Entities::Data undef
+    requirements:
+      Carp 0
+      Test::More 0
       perl 5.008
   XString-0.005
     pathname: A/AT/ATOOMIC/XString-0.005.tar.gz
