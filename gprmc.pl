@@ -140,6 +140,9 @@ sub format_lat_long($lat, $ns, $long, $ew) {
 }
 
 sub gauge_lat_long($lat_long, $altitude) {
+
+    state $previous_altitude;
+
     my $lat      = $lat_long->{lat};
     my $long     = $lat_long->{long};
 
@@ -150,6 +153,16 @@ sub gauge_lat_long($lat_long, $altitude) {
     my $ew       = $long < 0 ? 'W' : 'E';
 
     my $formatted_altitude = sprintf('%.1f', $altitude);
+    my $arrow = '-';
+    if (defined $previous_altitude) {
+        if ($altitude > $previous_altitude) {
+            $arrow = '&uarr;'
+        }
+        elsif ($altitude < $previous_altitude) {
+            $arrow = '&darr;'
+        }
+    }
+    $previous_altitude = $altitude;
 
     return <<HTML;
 <div>
@@ -161,7 +174,7 @@ sub gauge_lat_long($lat_long, $altitude) {
         <text x="75" y="50" fill="#333333" font-family="Helvetica, sans-serif" dominant-baseline="middle" text-anchor="end" font-size="1em" font-weight="bold">${abs_long}˚</text>
         <text x="90" y="50" fill="#333333" font-family="Helvetica, sans-serif" dominant-baseline="middle" text-anchor="end" font-size="1em" font-weight="bold">$ew</text>
         <text x="75" y="75" fill="#333333" font-family="Helvetica, sans-serif" dominant-baseline="middle" text-anchor="end" font-size="1em" font-weight="normal">${formatted_altitude}m</text>
-        <text x="90" y="75" fill="#333333" font-family="Helvetica, sans-serif" dominant-baseline="middle" text-anchor="end" font-size="1em" font-weight="normal">&uarr;</text>
+        <text x="90" y="75" fill="#333333" font-family="Helvetica, sans-serif" dominant-baseline="middle" text-anchor="end" font-size="1em" font-weight="normal">${arrow}</text>
     </svg>
 </div>
 HTML
@@ -232,8 +245,6 @@ sub gauge_course($course) {
 
     my $round_course = round($course);
 
-    # <path d="M50 50 L${blob_x} ${blob_y}" stroke="#f0f0f0" stroke-width="2"/>
-
     return <<HTML;
 <div>
     <svg width="100" height="100">
@@ -242,38 +253,16 @@ sub gauge_course($course) {
         <circle cx="50" cy="50" r="40" stroke="#e0e0e0" stroke-width="5" fill="none" />
         <path d="M50 50 L${ptr_x_1} ${ptr_y_1} L${ptr_x_2} ${ptr_y_2} Z" fill="#e8e8e8" />
         <circle cx="${blob_x}" cy="${blob_y}" r="6" fill="#55aa11" />
-        <text x="50" y="50" fill="#55aa11" font-family="Helvetica, sans-serif" dominant-baseline="middle" text-anchor="middle" font-size="1.5em" font-weight="bold">${round_course}</text>
+        <text x="53" y="50" fill="#55aa11" font-family="Helvetica, sans-serif" dominant-baseline="middle" text-anchor="middle" font-size="1.5em" font-weight="bold">${round_course}˚</text>
         <text x="50" y="68" fill="#555555" font-family="Helvetica, sans-serif" dominant-baseline="middle" text-anchor="middle" font-size="0.75em" >course</text>
     </svg>
 </div>
 HTML
 }
 
-sub write_html($file_no, $data) {
-    my $html_filename = sprintf('/tmp/gauges%04d.html', $file_no);
-    open(my $fh, '>', $html_filename);
-    binmode($fh);
+sub gauge_elevation($elevation) {
 
-    my $lat_long = gauge_lat_long($data->{lat_long}, $data->{altitude});
-    my $speed    = gauge_speed($data->{speed});
-    my $course   = gauge_course($data->{course});
-
-    print $fh <<HTML;
-<!DOCTYPE html>
-<html lang="en" dir="ltr">
-<head>
-  <meta charset="UTF-8"/>
-  <title>Black Mountain Pass</title>
-</head>
-<body>
-  <!-- LOCATION -->
-$lat_long
-  <!-- SPEED -->
-$speed
-  <!-- COURSE -->
-$course
-
-  <!-- ELEVATION -->
+return <<HTML;
   <div>
     <svg width="100" height="100">
       <path d="M0 0 L0 100 L100 100 L100 0 Z" stroke="black" stroke-width="1" fill="none"/>
@@ -287,7 +276,7 @@ $course
         S60 90 60 80
         S70 90 70 80
         S80 90 80 80
-        " stroke="#2E8B82" stroke-width="4" fill="none"/>
+        " stroke="#2E8B82" stroke-width="2" fill="none"/>
       <path d="
         M86 80 L94 80
         M90 80 L90 10
@@ -297,12 +286,36 @@ $course
       <text x="45" y="58" fill="#555555" font-family="Helvetica, sans-serif" dominant-baseline="middle" text-anchor="middle" font-size="0.75em">m a.s.l.</text>
     </svg>
   </div>
+HTML
+}
 
+sub write_html($file_no, $data) {
+    my $html_filename = sprintf('/tmp/gauges%04d.html', $file_no);
+    open(my $fh, '>', $html_filename);
+    binmode($fh);
+
+    my $lat_long  = gauge_lat_long($data->{lat_long}, $data->{altitude});
+    my $speed     = gauge_speed($data->{speed});
+    my $course    = gauge_course($data->{course});
+    my $elevation = gauge_elevation($data->{altitude});
+
+    print $fh <<HTML;
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Black Mountain Pass</title>
+</head>
+<body>
+${lat_long}
+${speed}
+${course}
+${elevation}
 </body>
 </html>
 HTML
 
     my $image_filename = sprintf('output/image%04d.png', $file_no);
     print "Write $image_filename\n";
-    system("/usr/local/bin/wkhtmltoimage --quality 100 ${html_filename} ${image_filename} &");
+    system("/usr/local/bin/wkhtmltoimage --quality 100 ${html_filename} ${image_filename}");
 }
