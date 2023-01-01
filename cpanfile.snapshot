@@ -596,6 +596,12 @@ DISTRIBUTIONS
       perl 5.006
       strict 0
       warnings 0
+  File-Tempdir-0.02
+    pathname: N/NA/NANARDON/File-Tempdir-0.02.tar.gz
+    provides:
+      File::Tempdir 0.02
+    requirements:
+      ExtUtils::MakeMaker 0
   FindBin-libs-v3.0.2
     pathname: L/LE/LEMBARK/FindBin-libs-v3.0.2.tar.gz
     provides:
