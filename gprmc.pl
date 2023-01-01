@@ -290,8 +290,8 @@ return <<HTML;
         M90 80 L90 10
         M86 10 L94 10
         " stroke="#999999" stroke-width="1" fill="none"/>
-      <text x="45" y="40" fill="#55aa11" font-family="Helvetica, sans-serif" dominant-baseline="middle" text-anchor="middle" font-size="1.5em" font-weight="bold">372.4</text>
-      <text x="45" y="58" fill="#555555" font-family="Helvetica, sans-serif" dominant-baseline="middle" text-anchor="middle" font-size="0.75em">m a.s.l.</text>
+      <text x="44" y="40" fill="#55aa11" font-family="Helvetica, sans-serif" dominant-baseline="middle" text-anchor="middle" font-size="1.35em" font-weight="bold">${elevation}m</text>
+      <text x="45" y="58" fill="#555555" font-family="Helvetica, sans-serif" dominant-baseline="middle" text-anchor="middle" font-size="0.75em">a.s.l.</text>
     </svg>
   </div>
 HTML
