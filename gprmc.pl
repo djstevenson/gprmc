@@ -9,6 +9,7 @@ use FindBin::libs;
 use DateTime;
 use Math::Trig;
 use Parallel::Subs;
+use IPC::Run qw/ run /;
 
 binmode(STDIN);
 
@@ -323,6 +324,8 @@ ${elevation}
 HTML
 
     my $image_filename = sprintf('output/image%04d.png', $data->{file_no});
-    print "Write $image_filename\n";
-    system("/usr/local/bin/wkhtmltoimage --quality 100 ${html_filename} ${image_filename}");
+
+    my @cmd = ('/usr/local/bin/wkhtmltoimage', '--quality' => 100, $html_filename => $image_filename);
+
+    run \@cmd, '>' => '/dev/null', '2>' => '/dev/null';
 }
