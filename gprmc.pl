@@ -7,6 +7,7 @@ use v5.36;
 
 use FindBin::libs;
 use DateTime;
+use DateTime::Format::ISO8601::Format;
 use Math::Trig;
 use Parallel::Subs;
 use IPC::Run qw/ run /;
@@ -46,10 +47,10 @@ while (my $line = <STDIN>) {
     my ($utc_time, $latitude, $ns, $longitude, $ew, $knots, $course, $date) = @{^CAPTURE};
 
     my $dt = format_datetime($date, $utc_time);
-
     my $lat_long = format_lat_long($latitude, $ns, $longitude, $ew);
     my $mph = format_speed($knots);
 
+    $speed_limit = undef if $file_no > 90;
 
     ## Altitude comes from GPGGA sentence
     # $GPGGA,134747.300,5151.46603,N,00351.17490,W,1,15,0.73,399.4,M,51.5,M,,*6C
@@ -89,7 +90,6 @@ while (my $line = <STDIN>) {
     $old_alt = $altitude;
 
     $file_no++;
-    last;
 }
 
 $p->wait_for_all;
@@ -107,6 +107,10 @@ sub format_datetime($date, $time) {
     my ($day, $mon, $year) = $date =~ /^(\d\d)(\d\d)(\d\d)$/;
     my ($hour, $min, $sec) = $time =~ /^(\d\d)(\d\d)(\d\d\.\d\d\d)$/;
 
+    my $formatter = DateTime::Format::ISO8601::Format->new(
+        second_precision => 3,
+    );
+
     return DateTime->new(
         year       => 2000 + $year,
         month      => $mon,
@@ -114,8 +118,9 @@ sub format_datetime($date, $time) {
         hour       => $hour,
         minute     => $min,
         second     => int($sec),
-        nanosecond => int(($sec-int($sec)) * 1_000_000),
+        nanosecond => int(($sec-int($sec)) * 1_000_000_000),
         time_zone  => 'UTC',
+        formatter  => $formatter,  # eg 2022-07-19T13:47:33.300Z
     );
 }
 
@@ -303,18 +308,20 @@ HTML
 
 sub gauge_speed_limit($limit) {
 
-    my ($ring_colour, $ring_width, $indicator);
+    my ($ring_colour, $ring_width, $indicator, $radius);
     if ($limit) {
         $ring_colour = '#c00000';
-        $ring_width  = 9;
-        $indicator = qq(<text x="50" y="52" fill="#333333" font-family="Helvetica, sans-serif" dominant-baseline="middle" text-anchor="middle" font-size="2.75em" font-weight="900">${limit}</text>);
+        $ring_width  = 10;
+        $indicator   = qq(<text x="50" y="53" fill="#333333" font-family="Helvetica, sans-serif" dominant-baseline="middle" text-anchor="middle" font-size="2.65em" font-weight="900">${limit}</text>);
+        $radius      = 35;
     }
     else {
         $ring_colour = '#333333';
         $ring_width  = 1;
-        $indicator = qq(
-            <path id="bar" d="M85 0 L100 15 L15 100 L0 85 Z" fill="${ring_colour}" clip-path="url(#circleClip)" />
+        $indicator   = qq(
+            <path id="bar" d="M87 0 L100 13 L13 100 L0 87 Z" fill="${ring_colour}" clip-path="url(#circleClip)" />
         );
+        $radius      = 40;
     }
 
     return <<HTML;
@@ -322,12 +329,12 @@ sub gauge_speed_limit($limit) {
       <svg width="100" height="100">
         <defs>
           <clipPath id="circleClip">
-              <circle cx="50" cy="50" r="35" />
+              <circle cx="50" cy="50" r="${radius}" />
           </clipPath>
         </defs>
         <path d="M0 0 L0 100 L100 100 L100 0 Z" stroke="black" stroke-width="1" fill="none"/>
 
-        <circle cx="50" cy="50" r="35" stroke="${ring_colour}" stroke-width="${ring_width}" fill="none" />
+        <circle cx="50" cy="50" r="${radius}" stroke="${ring_colour}" stroke-width="${ring_width}" fill="none" />
         ${indicator}
       </svg>
     </div>
