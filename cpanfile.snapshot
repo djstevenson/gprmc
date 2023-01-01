@@ -110,68 +110,14 @@ DISTRIBUTIONS
       strict 0
       warnings 0
       warnings::register 0
-  DateTime-Format-Builder-0.83
-    pathname: D/DR/DROLSKY/DateTime-Format-Builder-0.83.tar.gz
+  DateTime-Format-ISO8601-Format-0.005
+    pathname: P/PE/PERLANCAR/DateTime-Format-ISO8601-Format-0.005.tar.gz
     provides:
-      DateTime::Format::Builder 0.83
-      DateTime::Format::Builder::Parser 0.83
-      DateTime::Format::Builder::Parser::Dispatch 0.83
-      DateTime::Format::Builder::Parser::Quick 0.83
-      DateTime::Format::Builder::Parser::Regex 0.83
-      DateTime::Format::Builder::Parser::Strptime 0.83
-      DateTime::Format::Builder::Parser::generic 0.83
+      DateTime::Format::ISO8601::Format 0.005
     requirements:
-      Carp 0
-      DateTime 1.00
-      DateTime::Format::Strptime 1.04
+      DateTime::TimeZone 0
       ExtUtils::MakeMaker 0
-      Params::Validate 0.72
-      Scalar::Util 0
-      parent 0
-      strict 0
-      warnings 0
-  DateTime-Format-ISO8601-0.16
-    pathname: D/DR/DROLSKY/DateTime-Format-ISO8601-0.16.tar.gz
-    provides:
-      DateTime::Format::ISO8601 0.16
-      DateTime::Format::ISO8601::Types 0.16
-    requirements:
-      Carp 0
-      DateTime 1.45
-      DateTime::Format::Builder 0.77
-      ExtUtils::MakeMaker 0
-      Params::ValidationCompiler 0.26
-      Specio 0.18
-      Specio::Declare 0
-      Specio::Exporter 0
-      Specio::Library::Builtins 0
-      namespace::autoclean 0
-      parent 0
-      strict 0
-      warnings 0
-  DateTime-Format-Strptime-1.79
-    pathname: D/DR/DROLSKY/DateTime-Format-Strptime-1.79.tar.gz
-    provides:
-      DateTime::Format::Strptime 1.79
-      DateTime::Format::Strptime::Types 1.79
-    requirements:
-      Carp 0
-      DateTime 1.00
-      DateTime::Locale 1.30
-      DateTime::Locale::Base 0
-      DateTime::Locale::FromData 0
-      DateTime::TimeZone 2.09
-      Exporter 0
-      ExtUtils::MakeMaker 0
-      Params::ValidationCompiler 0
-      Specio 0.33
-      Specio::Declare 0
-      Specio::Exporter 0
-      Specio::Library::Builtins 0
-      Specio::Library::String 0
-      Try::Tiny 0
-      constant 0
-      parent 0
+      perl 5.010001
       strict 0
       warnings 0
   DateTime-Locale-1.37
@@ -873,25 +819,6 @@ DISTRIBUTIONS
       Parallel::ForkManager 0
       Sys::Info 0
       perl 5.010
-  Params-Validate-1.31
-    pathname: D/DR/DROLSKY/Params-Validate-1.31.tar.gz
-    provides:
-      Params::Validate 1.31
-      Params::Validate::Constants 1.31
-      Params::Validate::PP 1.31
-      Params::Validate::XS 1.31
-    requirements:
-      Carp 0
-      Exporter 0
-      ExtUtils::CBuilder 0
-      Module::Build 0.4227
-      Module::Implementation 0
-      Scalar::Util 1.10
-      XSLoader 0
-      perl 5.008001
-      strict 0
-      vars 0
-      warnings 0
   Params-ValidationCompiler-0.30
     pathname: D/DR/DROLSKY/Params-ValidationCompiler-0.30.tar.gz
     provides:
