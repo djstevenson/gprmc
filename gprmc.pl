@@ -13,6 +13,8 @@ use IPC::Run qw/ run /;
 
 binmode(STDIN);
 
+my $speed_limit = 40;
+
 my $file_no = 1;
 my $p = Parallel::Subs->new(max_process_per_cpu => 2);
 my $old_alt;
@@ -74,18 +76,20 @@ while (my $line = <STDIN>) {
     my ($altitude) = @{^CAPTURE};
 
     my $data = {
-        file_no   => $file_no,
-        date_time => $dt,
-        lat_long  => $lat_long,
-        speed     => $mph,
-        course    => $course,
-        altitude  => $altitude,
-        old_alt   => $old_alt,
+        file_no     => $file_no,
+        date_time   => $dt,
+        lat_long    => $lat_long,
+        speed       => $mph,
+        course      => $course,
+        altitude    => $altitude,
+        old_alt     => $old_alt,
+        speed_limit => $speed_limit,
     };
     $p->add( sub { write_html($data)});
     $old_alt = $altitude;
 
     $file_no++;
+    last;
 }
 
 $p->wait_for_all;
@@ -297,15 +301,49 @@ return <<HTML;
 HTML
 }
 
+sub gauge_speed_limit($limit) {
+
+    my ($ring_colour, $ring_width, $indicator);
+    if ($limit) {
+        $ring_colour = '#c00000';
+        $ring_width  = 9;
+        $indicator = qq(<text x="50" y="52" fill="#333333" font-family="Helvetica, sans-serif" dominant-baseline="middle" text-anchor="middle" font-size="2.75em" font-weight="900">${limit}</text>);
+    }
+    else {
+        $ring_colour = '#333333';
+        $ring_width  = 1;
+        $indicator = qq(
+            <path id="bar" d="M85 0 L100 15 L15 100 L0 85 Z" fill="${ring_colour}" clip-path="url(#circleClip)" />
+        );
+    }
+
+    return <<HTML;
+    <div>
+      <svg width="100" height="100">
+        <defs>
+          <clipPath id="circleClip">
+              <circle cx="50" cy="50" r="35" />
+          </clipPath>
+        </defs>
+        <path d="M0 0 L0 100 L100 100 L100 0 Z" stroke="black" stroke-width="1" fill="none"/>
+
+        <circle cx="50" cy="50" r="35" stroke="${ring_colour}" stroke-width="${ring_width}" fill="none" />
+        ${indicator}
+      </svg>
+    </div>
+HTML
+}
+
 sub write_html($data) {
     my $html_filename = sprintf('/tmp/gauges%04d.html', $data->{file_no});
     open(my $fh, '>', $html_filename);
     binmode($fh);
 
-    my $lat_long  = gauge_lat_long($data->{lat_long}, $data->{altitude}, $data->{old_alt});
-    my $speed     = gauge_speed($data->{speed});
-    my $course    = gauge_course($data->{course});
-    my $elevation = gauge_elevation($data->{altitude});
+    my $lat_long    = gauge_lat_long($data->{lat_long}, $data->{altitude}, $data->{old_alt});
+    my $speed       = gauge_speed($data->{speed});
+    my $course      = gauge_course($data->{course});
+    my $elevation   = gauge_elevation($data->{altitude});
+    my $speed_limit = gauge_speed_limit($data->{speed_limit});
 
     print $fh <<HTML;
 <!DOCTYPE html>
@@ -319,6 +357,7 @@ ${lat_long}
 ${speed}
 ${course}
 ${elevation}
+${speed_limit}
 </body>
 </html>
 HTML
