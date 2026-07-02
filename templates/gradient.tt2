@@ -1,0 +1,41 @@
+[% SET pct = Gradient < 0 ? 0 - Gradient : Gradient %]
+[% SET gradient_label = Gradient < 0 ? 'Uphill' : Gradient > 0 ? 'Downhill' : 'Level' %]
+<svg viewBox="0 0 120 120" width="140" height="140"
+     role="img"
+     aria-label="[% gradient_label %][% pct ? ' gradient ' _ pct _ ' percent' : '' %]">
+
+  [% IF Gradient > 0 %]
+  <!-- Uphill: right angle at bottom-right, hypotenuse rises left to right -->
+  <polygon points="15,80 105,80 105,50" fill="#111"/>
+  <text x="57" y="56"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        font-size="16"
+        font-weight="bold"
+        fill="black"
+        transform="rotate(-19.5 57 45)">[% pct %]%</text>
+
+  [% ELSIF Gradient < 0 %]
+  <!-- Downhill: right angle at bottom-left, hypotenuse falls left to right -->
+  <polygon points="15,80 15,50 105,80" fill="#111"/>
+  <text x="60" y="65"
+        text-anchor="middle"
+        dominant-baseline="middle"
+        font-size="16"
+        font-weight="bold"
+        fill="black"
+        transform="rotate(19.5 85 55)">[% pct %]%</text>
+
+  [% ELSE %]
+  <!-- Level: just the base line -->
+  <line x1="15" y1="80" x2="105" y2="80" stroke="#111" stroke-width="3"/>
+
+  [% END %]
+
+  <text x="60" y="98"
+        text-anchor="middle"
+        font-size="16"
+        font-weight="bold"
+        fill="#333">[% Altitude | format('%.1f') %]m</text>
+
+</svg>

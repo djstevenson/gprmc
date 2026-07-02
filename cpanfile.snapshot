@@ -1,5 +1,19 @@
 # carton snapshot format: version 1.0
 DISTRIBUTIONS
+  AppConfig-1.71
+    pathname: N/NE/NEILB/AppConfig-1.71.tar.gz
+    provides:
+      AppConfig 1.71
+      AppConfig::Args 1.71
+      AppConfig::CGI 1.71
+      AppConfig::File 1.71
+      AppConfig::Getopt 1.71
+      AppConfig::State 1.71
+      AppConfig::Sys 1.71
+    requirements:
+      ExtUtils::MakeMaker 0
+      Test::More 0
+      perl 5.008008
   B-Hooks-EndOfScope-0.26
     pathname: E/ET/ETHER/B-Hooks-EndOfScope-0.26.tar.gz
     provides:
@@ -18,21 +32,6 @@ DISTRIBUTIONS
       perl 5.006001
       strict 0
       warnings 0
-  Capture-Tiny-0.48
-    pathname: D/DA/DAGOLDEN/Capture-Tiny-0.48.tar.gz
-    provides:
-      Capture::Tiny 0.48
-    requirements:
-      Carp 0
-      Exporter 0
-      ExtUtils::MakeMaker 6.17
-      File::Spec 0
-      File::Temp 0
-      IO::Handle 0
-      Scalar::Util 0
-      perl 5.006
-      strict 0
-      warnings 0
   Class-Data-Inheritable-0.09
     pathname: R/RS/RSHERER/Class-Data-Inheritable-0.09.tar.gz
     provides:
@@ -49,19 +48,6 @@ DISTRIBUTIONS
       File::Spec 0.80
       base 0
       perl 5.008
-  Class-Method-Modifiers-2.13
-    pathname: E/ET/ETHER/Class-Method-Modifiers-2.13.tar.gz
-    provides:
-      Class::Method::Modifiers 2.13
-    requirements:
-      B 0
-      Carp 0
-      Exporter 0
-      ExtUtils::MakeMaker 0
-      base 0
-      perl 5.006
-      strict 0
-      warnings 0
   Class-Singleton-1.6
     pathname: S/SH/SHAY/Class-Singleton-1.6.tar.gz
     provides:
@@ -620,20 +606,6 @@ DISTRIBUTIONS
       Test::More 0
       strict 0
       version 0
-  IPC-Run-20220807.0
-    pathname: T/TO/TODDR/IPC-Run-20220807.0.tar.gz
-    provides:
-      IPC::Run 20220807.0
-      IPC::Run::Debug 20220807.0
-      IPC::Run::IO 20220807.0
-      IPC::Run::Timer 20220807.0
-      IPC::Run::Win32Helper 20220807.0
-      IPC::Run::Win32IO 20220807.0
-      IPC::Run::Win32Process 20220807.0
-      IPC::Run::Win32Pump 20220807.0
-    requirements:
-      ExtUtils::MakeMaker 0
-      Test::More 0.47
   MRO-Compat-0.15
     pathname: H/HA/HAARG/MRO-Compat-0.15.tar.gz
     provides:
@@ -641,40 +613,6 @@ DISTRIBUTIONS
     requirements:
       ExtUtils::MakeMaker 0
       perl 5.006
-  Mac-PropertyList-1.504
-    pathname: B/BD/BDFOY/Mac-PropertyList-1.504.tar.gz
-    provides:
-      Mac::PropertyList 1.504
-      Mac::PropertyList::Boolean 1.504
-      Mac::PropertyList::Container 1.504
-      Mac::PropertyList::Item 1.504
-      Mac::PropertyList::LineListSource 1.504
-      Mac::PropertyList::ReadBinary 1.504
-      Mac::PropertyList::Scalar 1.504
-      Mac::PropertyList::Source 1.504
-      Mac::PropertyList::TextSource 1.504
-      Mac::PropertyList::WriteBinary 1.504
-      Mac::PropertyList::array 1.504
-      Mac::PropertyList::data 1.504
-      Mac::PropertyList::date 1.504
-      Mac::PropertyList::dict 1.504
-      Mac::PropertyList::false 1.504
-      Mac::PropertyList::integer 1.504
-      Mac::PropertyList::real 1.504
-      Mac::PropertyList::string 1.504
-      Mac::PropertyList::true 1.504
-      Mac::PropertyList::uid 1.504
-      Mac::PropertyList::ustring 1.504
-    requirements:
-      ExtUtils::MakeMaker 6.64
-      File::Spec::Functions 0
-      MIME::Base64 0
-      Math::BigInt 0
-      Scalar::Util 1.11
-      Time::Local 0
-      XML::Entities 0
-      parent 0
-      perl 5.010
   Module-Build-0.4232
     pathname: L/LE/LEONT/Module-Build-0.4232.tar.gz
     provides:
@@ -741,33 +679,126 @@ DISTRIBUTIONS
       perl 5.006
       strict 0
       warnings 0
-  Moo-2.005004
-    pathname: H/HA/HAARG/Moo-2.005004.tar.gz
+  Mojolicious-9.46
+    pathname: S/SR/SRI/Mojolicious-9.46.tar.gz
     provides:
-      Method::Generate::Accessor undef
-      Method::Generate::BuildAll undef
-      Method::Generate::Constructor undef
-      Method::Generate::DemolishAll undef
-      Moo 2.005004
-      Moo::HandleMoose undef
-      Moo::HandleMoose::FakeConstructor undef
-      Moo::HandleMoose::FakeMetaClass undef
-      Moo::HandleMoose::_TypeMap undef
-      Moo::Object undef
-      Moo::Role 2.005004
-      Moo::_Utils undef
-      Moo::sification undef
-      oo undef
+      Mojo undef
+      Mojo::Asset undef
+      Mojo::Asset::File undef
+      Mojo::Asset::Memory undef
+      Mojo::Base undef
+      Mojo::BaseUtil undef
+      Mojo::ByteStream undef
+      Mojo::Cache undef
+      Mojo::Collection undef
+      Mojo::Content undef
+      Mojo::Content::MultiPart undef
+      Mojo::Content::Single undef
+      Mojo::Cookie undef
+      Mojo::Cookie::Request undef
+      Mojo::Cookie::Response undef
+      Mojo::DOM undef
+      Mojo::DOM::CSS undef
+      Mojo::DOM::HTML undef
+      Mojo::Date undef
+      Mojo::DynamicMethods undef
+      Mojo::EventEmitter undef
+      Mojo::Exception undef
+      Mojo::File undef
+      Mojo::Headers undef
+      Mojo::HelloWorld undef
+      Mojo::Home undef
+      Mojo::IOLoop undef
+      Mojo::IOLoop::Client undef
+      Mojo::IOLoop::Server undef
+      Mojo::IOLoop::Stream undef
+      Mojo::IOLoop::Subprocess undef
+      Mojo::IOLoop::TLS undef
+      Mojo::JSON undef
+      Mojo::JSON::Pointer undef
+      Mojo::Loader undef
+      Mojo::Log undef
+      Mojo::Message undef
+      Mojo::Message::Request undef
+      Mojo::Message::Response undef
+      Mojo::Parameters undef
+      Mojo::Path undef
+      Mojo::Promise undef
+      Mojo::Reactor undef
+      Mojo::Reactor::EV undef
+      Mojo::Reactor::Poll undef
+      Mojo::SSE undef
+      Mojo::Server undef
+      Mojo::Server::CGI undef
+      Mojo::Server::Daemon undef
+      Mojo::Server::Hypnotoad undef
+      Mojo::Server::Morbo undef
+      Mojo::Server::Morbo::Backend undef
+      Mojo::Server::Morbo::Backend::Poll undef
+      Mojo::Server::PSGI undef
+      Mojo::Server::Prefork undef
+      Mojo::Template undef
+      Mojo::Transaction undef
+      Mojo::Transaction::HTTP undef
+      Mojo::Transaction::WebSocket undef
+      Mojo::URL undef
+      Mojo::Upload undef
+      Mojo::UserAgent undef
+      Mojo::UserAgent::CookieJar undef
+      Mojo::UserAgent::Proxy undef
+      Mojo::UserAgent::Server undef
+      Mojo::UserAgent::Transactor undef
+      Mojo::Util undef
+      Mojo::WebSocket undef
+      Mojolicious 9.46
+      Mojolicious::Command undef
+      Mojolicious::Command::Author::cpanify undef
+      Mojolicious::Command::Author::generate undef
+      Mojolicious::Command::Author::generate::app undef
+      Mojolicious::Command::Author::generate::dockerfile undef
+      Mojolicious::Command::Author::generate::lite_app undef
+      Mojolicious::Command::Author::generate::makefile undef
+      Mojolicious::Command::Author::generate::plugin undef
+      Mojolicious::Command::Author::inflate undef
+      Mojolicious::Command::cgi undef
+      Mojolicious::Command::daemon undef
+      Mojolicious::Command::eval undef
+      Mojolicious::Command::get undef
+      Mojolicious::Command::prefork undef
+      Mojolicious::Command::psgi undef
+      Mojolicious::Command::routes undef
+      Mojolicious::Command::version undef
+      Mojolicious::Commands undef
+      Mojolicious::Controller undef
+      Mojolicious::Lite undef
+      Mojolicious::Plugin undef
+      Mojolicious::Plugin::Config undef
+      Mojolicious::Plugin::DefaultHelpers undef
+      Mojolicious::Plugin::EPLRenderer undef
+      Mojolicious::Plugin::EPRenderer undef
+      Mojolicious::Plugin::HeaderCondition undef
+      Mojolicious::Plugin::JSONConfig undef
+      Mojolicious::Plugin::Mount undef
+      Mojolicious::Plugin::NotYAMLConfig undef
+      Mojolicious::Plugin::TagHelpers undef
+      Mojolicious::Plugins undef
+      Mojolicious::Renderer undef
+      Mojolicious::Routes undef
+      Mojolicious::Routes::Match undef
+      Mojolicious::Routes::Pattern undef
+      Mojolicious::Routes::Route undef
+      Mojolicious::Sessions undef
+      Mojolicious::Static undef
+      Mojolicious::Types undef
+      Mojolicious::Validator undef
+      Mojolicious::Validator::Validation undef
+      Test::Mojo undef
+      ojo undef
     requirements:
-      Carp 0
-      Class::Method::Modifiers 1.10
-      Exporter 0
       ExtUtils::MakeMaker 0
-      Role::Tiny 2.002003
-      Scalar::Util 1.00
-      Sub::Defer 2.006006
-      Sub::Quote 2.006006
-      perl 5.006
+      IO::Socket::IP 0.37
+      Sub::Util 1.41
+      perl 5.016
   Package-Stash-0.40
     pathname: E/ET/ETHER/Package-Stash-0.40.tar.gz
     provides:
@@ -798,33 +829,6 @@ DISTRIBUTIONS
       perl 5.008001
       strict 0
       warnings 0
-  Parallel-ForkManager-2.02
-    pathname: Y/YA/YANICK/Parallel-ForkManager-2.02.tar.gz
-    provides:
-      Parallel::ForkManager 2.02
-      Parallel::ForkManager::Child 2.02
-    requirements:
-      Carp 0
-      ExtUtils::MakeMaker 0
-      File::Path 0
-      File::Spec 0
-      File::Temp 0
-      Moo 0
-      Moo::Role 0
-      POSIX 0
-      Storable 0
-      perl 5.006
-      strict 0
-      warnings 0
-  Parallel-Subs-0.002
-    pathname: A/AT/ATOOMIC/Parallel-Subs-0.002.tar.gz
-    provides:
-      Parallel::Subs 0.002
-    requirements:
-      ExtUtils::MakeMaker 0
-      Parallel::ForkManager 0
-      Sys::Info 0
-      perl 5.010
   Params-ValidationCompiler-0.30
     pathname: D/DR/DROLSKY/Params-ValidationCompiler-0.30.tar.gz
     provides:
@@ -943,42 +947,67 @@ DISTRIBUTIONS
       ExtUtils::MakeMaker 0
       Scalar::Util 0
       perl 5.006
-  Sys-Info-0.7811
-    pathname: B/BU/BURAK/Sys-Info-0.7811.tar.gz
+  Template-Toolkit-3.106
+    pathname: T/TO/TODDR/Template-Toolkit-3.106.tar.gz
     provides:
-      Sys::Info 0.7811
+      Template 3.106
+      Template::App::ttree 3.106
+      Template::Base 3.106
+      Template::Config 3.106
+      Template::Constants 3.106
+      Template::Context 3.106
+      Template::Directive 3.106
+      Template::Document 3.106
+      Template::Exception 3.106
+      Template::Filters 3.106
+      Template::Grammar 3.106
+      Template::Iterator 3.106
+      Template::Monad::Assert 3.106
+      Template::Monad::Scalar 3.106
+      Template::Namespace::Constants 3.106
+      Template::Parser 3.106
+      Template::Perl 3.106
+      Template::Plugin 3.106
+      Template::Plugin::Assert 3.106
+      Template::Plugin::Datafile 3.106
+      Template::Plugin::Date 3.106
+      Template::Plugin::Date::Calc 3.106
+      Template::Plugin::Date::Manip 3.106
+      Template::Plugin::Directory 3.106
+      Template::Plugin::Dumper 3.106
+      Template::Plugin::File 3.106
+      Template::Plugin::Filter 3.106
+      Template::Plugin::Format 3.106
+      Template::Plugin::HTML 3.106
+      Template::Plugin::Image 3.106
+      Template::Plugin::Iterator 3.106
+      Template::Plugin::List 3.106
+      Template::Plugin::Math 3.106
+      Template::Plugin::Pod 3.106
+      Template::Plugin::Procedural 3.106
+      Template::Plugin::Scalar 3.106
+      Template::Plugin::String 3.106
+      Template::Plugin::Table 3.106
+      Template::Plugin::URL 3.106
+      Template::Plugin::View 3.106
+      Template::Plugin::Wrap 3.106
+      Template::Plugins 3.106
+      Template::Provider 3.106
+      Template::Service 3.106
+      Template::Stash 3.106
+      Template::Stash::Context 3.106
+      Template::Stash::XS undef
+      Template::Test 3.106
+      Template::TieString 3.106
+      Template::Toolkit 3.106
+      Template::VMethods 3.106
+      Template::View 3.106
     requirements:
-      ExtUtils::MakeMaker 0
-      Sys::Info::Base 0.78
-      Sys::Info::Driver::OSX 0.78
-      perl 5.010
-  Sys-Info-Base-0.7807
-    pathname: B/BU/BURAK/Sys-Info-Base-0.7807.tar.gz
-    provides:
-      Sys::Info::Base 0.7807
-      Sys::Info::Constants 0.7807
-      Sys::Info::Device 0.7807
-      Sys::Info::Device::CPU 0.7807
-      Sys::Info::Driver 0.7807
-      Sys::Info::Helper 0.7807
-      Sys::Info::OS 0.7807
-    requirements:
-      ExtUtils::MakeMaker 0
-      Text::Template::Simple 0
-      perl 5.010
-  Sys-Info-Driver-OSX-0.7960
-    pathname: B/BU/BURAK/Sys-Info-Driver-OSX-0.7960.tar.gz
-    provides:
-      Sys::Info::Driver::OSX 0.7960
-      Sys::Info::Driver::OSX::Device 0.7960
-      Sys::Info::Driver::OSX::Device::CPU 0.7960
-      Sys::Info::Driver::OSX::OS 0.7960
-    requirements:
-      Capture::Tiny 0
-      ExtUtils::MakeMaker 0
-      Mac::PropertyList 0
-      Sys::Info::Base 0.7802
-      parent 0
+      AppConfig 1.56
+      ExtUtils::MakeMaker 6.48
+      File::Spec 0.8
+      File::Temp 0.12
+      Scalar::Util 0
       perl 5.010
   Test-Fatal-0.016
     pathname: R/RJ/RJBS/Test-Fatal-0.016.tar.gz
@@ -992,28 +1021,6 @@ DISTRIBUTIONS
       Try::Tiny 0.07
       strict 0
       warnings 0
-  Text-Template-Simple-0.91
-    pathname: B/BU/BURAK/Text-Template-Simple-0.91.tar.gz
-    provides:
-      Text::Template::Simple 0.91
-      Text::Template::Simple::Base::Compiler 0.91
-      Text::Template::Simple::Base::Examine 0.91
-      Text::Template::Simple::Base::Include 0.91
-      Text::Template::Simple::Base::Parser 0.91
-      Text::Template::Simple::Cache 0.91
-      Text::Template::Simple::Cache::ID 0.91
-      Text::Template::Simple::Caller 0.91
-      Text::Template::Simple::Compiler 0.91
-      Text::Template::Simple::Compiler::Safe 0.91
-      Text::Template::Simple::Constants 0.91
-      Text::Template::Simple::Dummy 0.91
-      Text::Template::Simple::IO 0.91
-      Text::Template::Simple::Tokenizer 0.91
-      Text::Template::Simple::Util 0.91
-    requirements:
-      Digest::MD5 1
-      ExtUtils::MakeMaker 0
-      perl 5.010
   Try-Tiny-0.31
     pathname: E/ET/ETHER/Try-Tiny-0.31.tar.gz
     provides:
@@ -1044,15 +1051,6 @@ DISTRIBUTIONS
       XSLoader 0
       base 0
       lib 0
-      perl 5.008
-  XML-Entities-1.0002
-    pathname: S/SI/SIXTEASE/XML-Entities-1.0002.tar.gz
-    provides:
-      XML::Entities 1.0002
-      XML::Entities::Data undef
-    requirements:
-      Carp 0
-      Test::More 0
       perl 5.008
   XString-0.005
     pathname: A/AT/ATOOMIC/XString-0.005.tar.gz

@@ -1,0 +1,91 @@
+[% SET mph = Speed * 0.621371 %]
+[% SET mph_display = mph %]
+
+[% SET shown_mph = mph %]
+[% IF shown_mph < 0 %][% SET shown_mph = 0 %][% END %]
+[% IF shown_mph > 80 %][% SET shown_mph = 80 %][% END %]
+
+[% SET needle_angle = -130 + (shown_mph / 80 * 260) %]
+
+<svg viewBox="0 0 120 120" width="140" height="140"
+     role="img"
+     aria-label="Speed [% mph_display | format('%d') %] miles per hour">
+
+  <circle cx="60" cy="60" r="56" fill="white" fill-opacity="0.4" stroke="#999" stroke-width="3"/>
+  <circle cx="60" cy="60" r="51" fill="none" stroke="#bbb" stroke-width="1"/>
+  <circle cx="60" cy="60" r="47" fill="none" stroke="#ddd" stroke-width="1"/>
+
+  <!-- tick marks: 0..80 mph, minor every 2 mph, major every 10 mph -->
+  [% FOREACH i IN [0 .. 40] %]
+    [% SET tick_mph = i * 2 %]
+    [% SET deg = -130 + (tick_mph / 80 * 260) %]
+    [% SET major = tick_mph % 10 == 0 %]
+
+    <line x1="60" y1="8"
+          x2="60" y2="[% major ? 16 : 13 %]"
+          stroke="currentColor"
+          stroke-width="[% major ? 2 : 1 %]"
+          transform="rotate([% deg %] 60 60)" />
+  [% END %]
+
+  <!-- number labels: x = 60 + 37*sin(deg), y = 60 - 37*cos(deg) + 3 (baseline offset for font-size=9) -->
+  <!-- deg = -130 + (mph / 80 * 260) -->
+  <text x="31.7" y="86.8" text-anchor="middle" font-size="9">0</text>
+  <text x="23.3" y="67.8" text-anchor="middle" font-size="9">10</text>
+  <text x="26.5" y="47.4" text-anchor="middle" font-size="9">20</text>
+  <text x="40.1" y="31.8" text-anchor="middle" font-size="9">30</text>
+  <text x="60"   y="26"   text-anchor="middle" font-size="9">40</text>
+  <text x="79.9" y="31.8" text-anchor="middle" font-size="9">50</text>
+  <text x="93.5" y="47.4" text-anchor="middle" font-size="9">60</text>
+  <text x="96.7" y="67.8" text-anchor="middle" font-size="9">70</text>
+  <text x="88.3" y="86.8" text-anchor="middle" font-size="9">80</text>
+
+  <!-- speed limit marker -->
+  [% IF Limit %]
+  [% SET limit_angle = -130 + (Limit / 80 * 260) %]
+  <polygon points="60,8 56,0 64,0"
+           stroke="#e31b23" stroke-width="1.5"
+           fill="white"
+           transform="rotate([% limit_angle | html %] 60 60)"/>
+  [% END %]
+
+  <!-- rotating needle, no tail -->
+  <g transform="rotate([% needle_angle | html %] 60 60)">
+    <polygon points="60,15 63,60 60,57 57,60"
+             fill="#e31b23"
+             stroke="#900"
+             stroke-width="0.5"/>
+
+    <polygon points="60,17 61.8,58 60,57"
+             fill="white"
+             opacity="0.25"/>
+  </g>
+
+  <!-- centre boss -->
+  <circle cx="60" cy="60" r="6"
+          fill="#d8d8d8"
+          stroke="#666"
+          stroke-width="1.2"/>
+
+  <circle cx="58" cy="58" r="2"
+          fill="white"
+          opacity="0.55"/>
+
+  <text x="60" y="78"
+        text-anchor="middle"
+        font-size="8"
+        fill="#333">mph</text>
+
+  <!-- digital readout 
+  <rect x="48" y="84" width="24" height="14"
+        rx="3"
+        fill="#eee"
+        stroke="#999"/>
+
+  <text x="60" y="94"
+        text-anchor="middle"
+        font-size="8">
+    [% mph_display | format('%d') %]
+  </text>
+  -->
+</svg>

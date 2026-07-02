@@ -1,377 +1,110 @@
 #!/usr/bin/env perl
-
-use v5.36;
+use Mojo::Base -signatures;
+use v5.42;
+use utf8;
 
 # Takes GPS data from exiftool and creates video (well, will do the latter at some point)
-# exiftool -ee /Users/davids/Desktop/220719_144732_219_FH.MP4 | carton exec -- gprmc.pl
+# exiftool -ee -X -n /Users/davids/Desktop/220719_144732_219_FH.MP4 | carton exec -- gprmc.pl
 
 use FindBin::libs;
 use DateTime;
 use DateTime::Format::ISO8601::Format;
-use Math::Trig;
-use Parallel::Subs;
-use IPC::Run qw/ run /;
+use Template;
+use Math::Trig qw(deg2rad);
 
-binmode(STDIN);
+binmode STDIN, ':encoding(UTF-8)';
 
-my $speed_limit = 40;
+# Load data assuming our input is from exiftool, speciically
+# exiftool -ee -n /Users/davids/Desktop/220719_144732_219_FH.MP4 | carton exec -- gprmc.pl
 
-my $file_no = 1;
-my $p = Parallel::Subs->new(max_process_per_cpu => 2);
-my $old_alt;
-while (my $line = <STDIN>) {
+#
+#
+# A block of GPS data will typically look like this:
+# GPS Altitude                    : 92.1
+# GPS Dilution Of Precision       : 0.86
+# GPS Date/Time                   : 2026:06:27 17:00:20.900Z
+# GPS Latitude                    : 51.8941496666667
+# GPS Longitude                   : -1.22875083333333
+# GPS Satellites                  : 12
+# GPS Speed                       : 77.863636
+# GPS Track                       : 258.63
+# Sample Time                     : 179.9
+# Sample Duration                 : 0.1
+# Accelerometer Data              : -44 -446 -414 1640 -65 181 -250 -178 -650 1908 143 189 -458 74 -604 2042 24 -15 -498 222 -652 2018 -359 -387 -446 -274 -458 2379 158 -401 -480 -268 -118 2372 233 -557 -146 -38 -78 2013 -46 -777 22 -96 -116 1803 20 -719 213 -237 -223 1963 525 -394 49 -205 -149 1756 374 -352 248 32 -524 1608 44 -454 330 -6 -744 1930 334 -219 130 32 -730 2481 810 137 -110 -160 -450 2466 440 -42 -114 -10 -420 2416 43 -350 -70 -26 -256 2662 465 -187 -108 -334 204 2536 602 -143 -176 -236 320 1902 90 -425 230 -86 128 1812 390 -284 58 114 88 1822 770 46 -192 124 -168 1475 316 -166 -244 -264 -480 1454 29 -448 -37 187 -797 2219 377 -395 19 291 -589 2364 140 -534 36 162 -448 2530 76 -507 254 -316 -144 2749 322 -393 80 90 68 2570 230 -270 154 -200 212 2141 -28 -356 80 -188 142 1976 110 -195 50 18 60 2001 403 -46 -104 230 -56 1840 297 -114 -64 166 -310 1923 290 -103 -132 6 -452 2048 25 -289 -52 78 -484 2394 108 -335 12 306 -386 2622 125 -309 43 129 -115 2626 15 -338 -169 61 71 2586 87 -310 -68 -84 208 2433 57 -403 -92 62 234 2282 239 -323 -72 120 204 2102 266 -323 -214 34 208 1833 178 -413
+#
+# Sometimes, we seem to get partial blocks repeated.  So we're going to process this by
+# assigning the latest value of each field to variables and then just output the latest
+# values when we see a GPS Track line, which seems to be the last interesting line of good blocks.
+
+my @pos_history;  # ring buffer of positions; 10 samples = ~1 second at 0.1s/sample
+my %latest;
+my $fileno = 1;
+my $gradient_age = 25; # 10 samples per second.
+my $gradient = 0;
+my $limit = 30;
+while (defined(my $line = <STDIN>)) {
     chomp $line;
 
-    # Line starts Text<spaces>: <some binary shiz>
-    # Binary contains, GPS data in, for example:
-    # $GPRMC,134747.300,A,5151.46603,N,00351.17490,W,34.711,92.16,190722,,,A*5B
-    next unless $line =~ /
-        ^
-        Text\s+:\s          # Text indicator
-        .*?                 # Skip other bin data
-        \$GPRMC,            # Sentence identifier
-        ([\d\.]+),          # UTC Time hhmmss.sss
-        A,                  # A indicates valid (v = invalid)
-        (\d+\.\d+),         # Latitude 5151.46603    ddmm.mmmmm
-        ([NS]),             # Lat N or S
-        (\d+\.\d+),         # Longitude 00351.18737  dddmm.mmmmm
-        ([EW]),             # Long E or W
-        (\d+\.\d+),         # Speed in knots
-        (\d+\.\d+),         # Course, degrees (magnetic or true?)
-        (\d\d\d\d\d\d),     # UTC Date DDMMYY
-        ,,                  # Not used, Magnetic variation
-        [ADE]               # Mode A=Autonomous, D=DGPS, E=DR, always A for NextBase
-        \*[[:xdigit:]]{2}   # Checksum
-    /x;
-
-    my ($utc_time, $latitude, $ns, $longitude, $ew, $knots, $course, $date) = @{^CAPTURE};
-
-    my $dt = format_datetime($date, $utc_time);
-    my $lat_long = format_lat_long($latitude, $ns, $longitude, $ew);
-    my $mph = format_speed($knots);
-
-    $speed_limit = undef if $file_no > 90;
-
-    ## Altitude comes from GPGGA sentence
-    # $GPGGA,134747.300,5151.46603,N,00351.17490,W,1,15,0.73,399.4,M,51.5,M,,*6C
-    next unless $line =~ /
-        ^
-        Text\s+:\s          # Text indicator
-        .*?                 # Skip other bin data
-        \$GPGGA,            # Sentence identifier
-        [\d\.]+,            # UTC Time hhmmss.sss
-        \d+\.\d+,           # Latitude 5151.46603    ddmm.mmmmm
-        [NS],               # Lat N or S
-        \d+\.\d+,           # Longitude 00351.18737  dddmm.mmmmm
-        [EW],               # Long E or W
-        1,                  # Fix quality (want 1)
-        \d\d,               # Satellite count
-        [\d\.]+,            # Horizontal dilution
-        ([\d\.]+),          # Height in metres
-        M,                  # Not used, indicates metres?
-        [\d\.]+,            # Geoidal separation (metres)
-        M,,                 # Not used, indicates metres?
-        \*[[:xdigit:]]{2}   # Checksum
-    /x;
-
-    my ($altitude) = @{^CAPTURE};
-
-    my $data = {
-        file_no     => $file_no,
-        date_time   => $dt,
-        lat_long    => $lat_long,
-        speed       => $mph,
-        course      => $course,
-        altitude    => $altitude,
-        old_alt     => $old_alt,
-        speed_limit => $speed_limit,
-    };
-    $p->add( sub { write_html($data)});
-    $old_alt = $altitude;
-
-    $file_no++;
-}
-
-$p->wait_for_all;
-
-
-sub round($f) {
-    return int($f+0.5);
-}
-
-sub format_datetime($date, $time) {
-    # $date is DDMMYY
-    # $time is hhmmss.sss
-    # All in UTC
-
-    my ($day, $mon, $year) = $date =~ /^(\d\d)(\d\d)(\d\d)$/;
-    my ($hour, $min, $sec) = $time =~ /^(\d\d)(\d\d)(\d\d\.\d\d\d)$/;
-
-    my $formatter = DateTime::Format::ISO8601::Format->new(
-        second_precision => 3,
-    );
-
-    return DateTime->new(
-        year       => 2000 + $year,
-        month      => $mon,
-        day        => $day,
-        hour       => $hour,
-        minute     => $min,
-        second     => int($sec),
-        nanosecond => int(($sec-int($sec)) * 1_000_000_000),
-        time_zone  => 'UTC',
-        formatter  => $formatter,  # eg 2022-07-19T13:47:33.300Z
-    );
-}
-
-sub format_speed($knots) {
-    return $knots * 1.15077945;
-}
-
-sub format_lat_long($lat, $ns, $long, $ew) {
-
-    # Longitude is in format ddmm.mmmmm
-    # dd = Degrees (unsigned)
-    # mm.mmmmm = Minutes
-    # So degress in decimal is
-    #  dd + (mm.mmmmm)/60
-    # Then apply sign from N/S.
-
-    # Longitude is same, except three digits
-    # for degrees.
-
-    my ($latitude, $longitude);
-    if ($lat =~ /^(\d\d)(\d+.\d+)$/) {
-        $latitude = $1 + $2/60;
-        $latitude *= $ns eq 'N' ? 1 : -1;
-    }
-    else {
-        die "Invalid latitude $lat";
-    }
-    if ($long =~ /^(\d\d\d)(\d+.\d+)$/) {
-        $longitude = $1 + $2/60;
-        $longitude *= $ew eq 'W' ? -1 : 1;
-    }
-    else {
-        die "Invalid longitude $long";
-    }
-
-    return { lat => $latitude, long => $longitude};
-}
-
-sub gauge_lat_long($lat_long, $altitude, $old_alt) {
-
-    my $lat      = $lat_long->{lat};
-    my $long     = $lat_long->{long};
-
-    my $abs_lat  = sprintf('%.4f', abs($lat));
-    my $abs_long = sprintf('%.4f', abs($long));
-
-    my $ns       = $lat  < 0 ? 'S' : 'N';
-    my $ew       = $long < 0 ? 'W' : 'E';
-
-    my $formatted_altitude = sprintf('%.1f', $altitude);
-    my $arrow = '-';
-    if (defined $old_alt) {
-        if ($altitude > $old_alt) {
-            $arrow = '&uarr;'
-        }
-        elsif ($altitude < $old_alt) {
-            $arrow = '&darr;'
+    if ($line =~ /^GPS\s+(.+?)\s*:\s*(.+)$/) {
+        my ($key, $value) = ($1, $2);
+        $key =~ s/\W/_/g;
+        $latest{$key} = $value;
+        if ($key eq 'Track') {
+            $latest{Limit} = $limit;
+            if (@pos_history == $gradient_age) {
+                my $old = $pos_history[0];
+                $gradient = int(0.5 + gradient_percent(
+                    $old->{Latitude}, $old->{Longitude}, $old->{Altitude},
+                    $latest{Latitude}, $latest{Longitude}, $latest{Altitude}
+                )) if defined $old->{Latitude} && defined $old->{Longitude} && defined $old->{Altitude};
+            }
+            $latest{Gradient} = $gradient;
+            push @pos_history, {
+                Latitude  => $latest{Latitude},
+                Longitude => $latest{Longitude},
+                Altitude  => $latest{Altitude},
+            };
+            shift @pos_history if @pos_history > $gradient_age;
+            writeHTML($fileno, \%latest);
+            $fileno++;
         }
     }
-
-    return <<HTML;
-<div>
-    <svg width="100" height="100">
-        <path d="M0 0 L0 100 L100 100 L100 0 Z" stroke="black" stroke-width="1" fill="none"/>
-
-        <text x="75" y="25" fill="#333333" font-family="Helvetica, sans-serif" dominant-baseline="middle" text-anchor="end" font-size="1em" font-weight="bold">${abs_lat}˚</text>
-        <text x="90" y="25" fill="#333333" font-family="Helvetica, sans-serif" dominant-baseline="middle" text-anchor="end" font-size="1em" font-weight="bold">${ns}</text>
-        <text x="75" y="50" fill="#333333" font-family="Helvetica, sans-serif" dominant-baseline="middle" text-anchor="end" font-size="1em" font-weight="bold">${abs_long}˚</text>
-        <text x="90" y="50" fill="#333333" font-family="Helvetica, sans-serif" dominant-baseline="middle" text-anchor="end" font-size="1em" font-weight="bold">$ew</text>
-        <text x="75" y="75" fill="#333333" font-family="Helvetica, sans-serif" dominant-baseline="middle" text-anchor="end" font-size="1em" font-weight="normal">${formatted_altitude}m</text>
-        <text x="90" y="75" fill="#333333" font-family="Helvetica, sans-serif" dominant-baseline="middle" text-anchor="end" font-size="1em" font-weight="normal">${arrow}</text>
-    </svg>
-</div>
-HTML
 }
 
-sub gauge_speed($speed) {
-    my $round_speed = round($speed);
+sub writeHTML($fileno, $latest) {
+    mkdir 'output' unless -d 'output';
+    my $dir_no = sprintf('%02d', int($fileno / 100));
+    mkdir "output/$dir_no" unless -d "output/$dir_no";
+    my $html_filename = sprintf('output/%s/gauges%04d.html', $dir_no, $fileno);
+    open(my $fh, '>:utf8', $html_filename);
 
-    my $dial_gap_deg = 90;
-    my $dial_angle   = 1.0 - ($dial_gap_deg / 360.0);
-    my $radius       = 40;
-    my $panel_width  = 100;
-    my $half_width   = $panel_width / 2.0;
-    my $min_speed    = 0;
-    my $max_speed    = 70;
 
-    my $half_gap_rad = pi * (1-$dial_angle);
-
-    my $x_offset     = $radius * sin($half_gap_rad);
-    my $y_offset     = $radius * cos($half_gap_rad);
-
-    my $start_x      = $half_width - $x_offset;
-    my $start_y      = $half_width + $y_offset;
-    my $end_x        = $half_width + $x_offset;
-    my $end_y        = $half_width + $y_offset;
-    
-    my $angle_min    = $dial_gap_deg/2.0;
-    my $angle_max    = 360.0 - $angle_min;
-
-    my $current_value = $speed / ($max_speed - $min_speed);
-    my $value_angle  = $angle_min + ($angle_max - $angle_min) * $current_value;
-    my $value_end_x  = $half_width - $radius * sin(deg2rad($value_angle));
-    my $value_end_y  = $half_width + $radius * cos(deg2rad($value_angle));
-
-    my $curve_bg     = sprintf('M%f %f A%d %d 0 1 1 %f %f', $start_x, $start_y, $radius, $radius, $end_x, $end_y);
-    my $large_arc    = $value_angle > (180 + $dial_gap_deg/2) ? 1 : 0;
-    my $curve_fg     = sprintf('M%f %f A%d %d 0 %d 1 %f %f', $start_x, $start_y, $radius, $radius, $large_arc, $value_end_x, $value_end_y);
-
-    return <<HTML;
-    <div>
-        <svg width="100" height="100">
-            <path d="M0 0 L0 100 L100 100 L100 0 Z" stroke="black" stroke-width="1" fill="none"/>
-
-            <path d="${curve_bg}" stroke="#e0e0e0" stroke-width="5" fill="none" stroke-linecap="round" />
-            <path d="${curve_fg}" stroke="#55aa11" stroke-width="10" fill="none" stroke-linecap="round" />
-            <text x="50" y="50" fill="#55aa11" font-family="Helvetica, sans-serif" dominant-baseline="middle" text-anchor="middle" font-size="2em" font-weight="bold">${round_speed}</text>
-            <text x="50" y="68" fill="#555555" font-family="Helvetica, sans-serif" dominant-baseline="middle" text-anchor="middle" font-size="0.75em" >mph</text>
-        </svg>
-    </div>
-HTML
+    my $tt2 = Template->new({ INCLUDE_PATH => 'templates' });
+    $tt2->process('main.tt2', $latest, $fh) or die $tt2->error();
 }
 
-sub gauge_course($course) {
+sub haversine_m {
+    my ($lat1, $lon1, $lat2, $lon2) = @_;
 
-    my $panel_width   = 100;
-    my $half_width    = $panel_width / 2.0;
+    my $r = 6_371_000; # Earth radius in metres
 
-    my $radius        = 40;
+    my $phi1 = deg2rad($lat1);
+    my $phi2 = deg2rad($lat2);
+    my $dphi = deg2rad($lat2 - $lat1);
+    my $dlambda = deg2rad($lon2 - $lon1);
 
-    my $blob_x        = $half_width + $radius * sin(deg2rad($course));
-    my $blob_y        = $half_width - $radius * cos(deg2rad($course));
+    my $a = sin($dphi / 2) ** 2
+          + cos($phi1) * cos($phi2) * sin($dlambda / 2) ** 2;
+    my $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
 
-    my $pointer_angle = 3;
-    my $ptr_x_1       = $half_width + $radius * sin(deg2rad($course + $pointer_angle));
-    my $ptr_y_1       = $half_width - $radius * cos(deg2rad($course + $pointer_angle));
-    my $ptr_x_2       = $half_width + $radius * sin(deg2rad($course - $pointer_angle));
-    my $ptr_y_2       = $half_width - $radius * cos(deg2rad($course - $pointer_angle));
-
-    my $round_course = round($course);
-
-    return <<HTML;
-<div>
-    <svg width="100" height="100">
-        <path d="M0 0 L0 100 L100 100 L100 0 Z" stroke="black" stroke-width="1" fill="none"/>
-
-        <circle cx="50" cy="50" r="40" stroke="#e0e0e0" stroke-width="5" fill="none" />
-        <path d="M50 50 L${ptr_x_1} ${ptr_y_1} L${ptr_x_2} ${ptr_y_2} Z" fill="#e8e8e8" />
-        <circle cx="${blob_x}" cy="${blob_y}" r="6" fill="#55aa11" />
-        <text x="53" y="50" fill="#55aa11" font-family="Helvetica, sans-serif" dominant-baseline="middle" text-anchor="middle" font-size="1.5em" font-weight="bold">${round_course}˚</text>
-        <text x="50" y="68" fill="#555555" font-family="Helvetica, sans-serif" dominant-baseline="middle" text-anchor="middle" font-size="0.75em" >course</text>
-    </svg>
-</div>
-HTML
+    return $r * $c;
 }
 
-sub gauge_elevation($elevation) {
+sub gradient_percent {
+    my ($lat1, $lon1, $alt1, $lat2, $lon2, $alt2) = @_;
 
-return <<HTML;
-  <div>
-    <svg width="100" height="100">
-      <path d="M0 0 L0 100 L100 100 L100 0 Z" stroke="black" stroke-width="1" fill="none"/>
+    my $dist = haversine_m($lat1, $lon1, $lat2, $lon2);
+    return 0 if $dist < 1; # avoid madness when stationary / tiny movement
 
-      <path d="
-        M10 80
-        C10 70 20 90 20 80
-        S30 90 30 80
-        S40 90 40 80
-        S50 90 50 80
-        S60 90 60 80
-        S70 90 70 80
-        S80 90 80 80
-        " stroke="#2E8B82" stroke-width="2" fill="none"/>
-      <path d="
-        M86 80 L94 80
-        M90 80 L90 10
-        M86 10 L94 10
-        " stroke="#999999" stroke-width="1" fill="none"/>
-      <text x="44" y="40" fill="#55aa11" font-family="Helvetica, sans-serif" dominant-baseline="middle" text-anchor="middle" font-size="1.35em" font-weight="bold">${elevation}m</text>
-      <text x="45" y="58" fill="#555555" font-family="Helvetica, sans-serif" dominant-baseline="middle" text-anchor="middle" font-size="0.75em">a.s.l.</text>
-    </svg>
-  </div>
-HTML
-}
-
-sub gauge_speed_limit($limit) {
-
-    my ($ring_colour, $ring_width, $indicator, $radius);
-    if ($limit) {
-        $ring_colour = '#c00000';
-        $ring_width  = 10;
-        $indicator   = qq(<text x="50" y="53" fill="#333333" font-family="Helvetica, sans-serif" dominant-baseline="middle" text-anchor="middle" font-size="2.65em" font-weight="900">${limit}</text>);
-        $radius      = 35;
-    }
-    else {
-        $ring_colour = '#333333';
-        $ring_width  = 1;
-        $indicator   = qq(
-            <path id="bar" d="M87 0 L100 13 L13 100 L0 87 Z" fill="${ring_colour}" clip-path="url(#circleClip)" />
-        );
-        $radius      = 40;
-    }
-
-    return <<HTML;
-    <div>
-      <svg width="100" height="100">
-        <defs>
-          <clipPath id="circleClip">
-              <circle cx="50" cy="50" r="${radius}" />
-          </clipPath>
-        </defs>
-        <path d="M0 0 L0 100 L100 100 L100 0 Z" stroke="black" stroke-width="1" fill="none"/>
-
-        <circle cx="50" cy="50" r="${radius}" stroke="${ring_colour}" stroke-width="${ring_width}" fill="none" />
-        ${indicator}
-      </svg>
-    </div>
-HTML
-}
-
-sub write_html($data) {
-    my $html_filename = sprintf('/tmp/gauges%04d.html', $data->{file_no});
-    open(my $fh, '>', $html_filename);
-    binmode($fh);
-
-    my $lat_long    = gauge_lat_long($data->{lat_long}, $data->{altitude}, $data->{old_alt});
-    my $speed       = gauge_speed($data->{speed});
-    my $course      = gauge_course($data->{course});
-    my $elevation   = gauge_elevation($data->{altitude});
-    my $speed_limit = gauge_speed_limit($data->{speed_limit});
-
-    print $fh <<HTML;
-<!DOCTYPE html>
-<html lang="en" dir="ltr">
-<head>
-  <meta charset="UTF-8"/>
-  <title>Black Mountain Pass</title>
-</head>
-<body>
-${lat_long}
-${speed}
-${course}
-${elevation}
-${speed_limit}
-</body>
-</html>
-HTML
-
-    my $image_filename = sprintf('output/image%04d.png', $data->{file_no});
-
-    my @cmd = ('/usr/local/bin/wkhtmltoimage', '--quality' => 100, $html_filename => $image_filename);
-
-    run \@cmd, '>' => '/dev/null', '2>' => '/dev/null';
+    return (($alt2 - $alt1) / $dist) * 100;
 }

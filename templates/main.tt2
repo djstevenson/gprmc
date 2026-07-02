@@ -1,0 +1,78 @@
+<!doctype html>
+<html>
+<head>
+<style>
+html, body {
+  margin: 0;
+  width: 1920px;
+  height: 1080px;
+  overflow: hidden;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background: #116611;
+  border: 10px solid black;
+  display: grid;
+  grid-template-rows: 98px 864px 98px;
+}
+
+.panel {
+  background: #669933;
+  border: 10px solid black;
+}
+
+#header {
+  width: 100%;
+}
+
+#footer {
+  width: 100%;
+}
+
+#main {
+  position: relative;
+}
+
+#video {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1536px;
+  height: 864px;
+}
+
+#telemetry {
+  position: absolute;
+  left: 1536px;
+  top: 0;
+  right: 0;
+  bottom: 0;
+}
+</style>
+</head>
+
+<body>
+  <div id="header" class="panel">header</div>
+
+  <div id="main">
+    <div id="video" class="panel">video</div>
+    <div id="telemetry" class="panel">
+        Gauges:
+        <div id="gauges">
+            <div class="panel">
+                [% INCLUDE compass.tt2 %]
+                [% INCLUDE speedo.tt2 %]
+            </div>
+            <div class="panel">[% INCLUDE gradient.tt2 %]</div>
+        </div>
+        <div id="map-panel" class="panel">[% INCLUDE map.tt2 %]</div>
+    </div>
+  </div>
+
+  <div id="footer" class="panel">footer</div>
+</body>
+</html>
