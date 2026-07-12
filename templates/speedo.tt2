@@ -4,10 +4,7 @@
 
 [% SET needle_angle = -130 + (shown_mph / 80 * 260) %]
 
-<svg viewBox="0 0 120 120" width="140" height="140"
-     role="img"
-     aria-label="Speed [% mph_display | format('%d') %] miles per hour">
-
+<svg viewBox="0 0 120 120" width="140" height="140" role="img">
   <circle cx="60" cy="60" r="56" fill="white" fill-opacity="0.4" stroke="#999" stroke-width="3"/>
   <circle cx="60" cy="60" r="51" fill="none" stroke="#bbb" stroke-width="1"/>
   <circle cx="60" cy="60" r="47" fill="none" stroke="#ddd" stroke-width="1"/>

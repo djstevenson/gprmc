@@ -1,6 +1,6 @@
 [% heading = frame.direction || 0 %]
 
-<svg viewBox="0 0 120 120" width="140" height="140" role="img" aria-label="Heading [% heading | format('%.1f') %] degrees">
+<svg viewBox="0 0 120 120" width="140" height="140" role="img">
 
     <circle cx="60" cy="60" r="56" fill="white" fill-opacity="0.4" stroke="#333" stroke-width="8"/>
 

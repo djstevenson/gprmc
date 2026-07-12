@@ -1,9 +1,6 @@
 [% SET pct = frame.gradient < 0 ? 0 - frame.gradient : frame.gradient %]
 [% SET gradient_label = frame.gradient < 0 ? 'Uphill' : frame.gradient > 0 ? 'Downhill' : 'Level' %]
-<svg viewBox="0 0 120 120" width="140" height="140"
-     role="img"
-     aria-label="[% gradient_label %][% pct ? ' gradient ' _ pct _ ' percent' : '' %]">
-
+<svg viewBox="0 0 120 120" width="140" height="140" role="img">
   [% IF frame.gradient > 0 %]
   <!-- Uphill: right angle at bottom-right, hypotenuse rises left to right -->
   <polygon points="15,80 105,80 105,50" fill="#111"/>
