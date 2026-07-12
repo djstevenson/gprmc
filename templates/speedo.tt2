@@ -1,7 +1,4 @@
-[% SET mph = Speed * 0.621371 %]
-[% SET mph_display = mph %]
-
-[% SET shown_mph = mph %]
+[% SET shown_mph = frame.speed %]
 [% IF shown_mph < 0 %][% SET shown_mph = 0 %][% END %]
 [% IF shown_mph > 80 %][% SET shown_mph = 80 %][% END %]
 

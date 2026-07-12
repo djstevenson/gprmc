@@ -5,3 +5,5 @@ requires 'Math::Trig';
 requires 'File::Tempdir';
 requires 'Mojolicious';
 requires 'Template::Toolkit';
+requires 'Moose';
+requires 'namespace::autoclean';

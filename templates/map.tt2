@@ -1,6 +1,6 @@
 <svg viewBox="0 0 320 185" width="320" height="185"
      role="img"
-     aria-label="Map placeholder, latitude [% Latitude | format('%.2f') %], longitude [% Longitude | format('%.2f') %]">
+     aria-label="Map placeholder, latitude [% frame.location.latitude | format('%.2f') %], longitude [% frame.location.longitude | format('%.2f') %]">
 
   <!-- map placeholder -->
   <rect x="0" y="0" width="320" height="160" fill="#888"/>
@@ -10,6 +10,6 @@
         text-anchor="middle"
         font-size="16"
         font-weight="bold"
-        fill="black">[% Latitude >= 0 ? '+' : '' %][% Latitude | format('%.5f') %],&nbsp;[% Longitude >= 0 ? '+' : '' %][% Longitude | format('%.5f') %]</text>
+        fill="black">[% frame.location.latitude >= 0 ? '+' : '' %][% frame.location.latitude | format('%.5f') %],&nbsp;[% frame.location.longitude >= 0 ? '+' : '' %][% frame.location.longitude | format('%.5f') %]</text>
 
 </svg>
