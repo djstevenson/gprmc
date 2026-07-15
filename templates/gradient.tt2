@@ -1,38 +1,14 @@
-[% SET pct = frame.gradient < 0 ? 0 - frame.gradient : frame.gradient %]
-[% SET gradient_label = frame.gradient < 0 ? 'Uphill' : frame.gradient > 0 ? 'Downhill' : 'Level' %]
-<svg viewBox="0 0 120 120" width="140" height="140" role="img">
-  [% IF frame.gradient > 0 %]
-  <!-- Uphill: right angle at bottom-right, hypotenuse rises left to right -->
-  <polygon points="15,80 105,80 105,50" fill="#111"/>
-  <text x="57" y="56"
+<svg viewBox="0 0 120 120" width="140" height="140" role="img" aria-labelledby="mountainTitle">
+  <title id="mountainTitle">Altitude</title>
+  <!-- Mountain silhouette -->
+  <g fill="#111" stroke="none">
+    <path d="M10 90 L35 50 L55 70 L75 30 L100 90 Z" />
+  </g>
+
+  <text x="60" y="105"
         text-anchor="middle"
-        dominant-baseline="middle"
-        font-size="16"
+        font-size="14"
         font-weight="bold"
-        fill="black"
-        transform="rotate(-19.5 57 45)">[% pct %]%</text>
-
-  [% ELSIF frame.gradient < 0 %]
-  <!-- Downhill: right angle at bottom-left, hypotenuse falls left to right -->
-  <polygon points="15,80 15,50 105,80" fill="#111"/>
-  <text x="60" y="65"
-        text-anchor="middle"
-        dominant-baseline="middle"
-        font-size="16"
-        font-weight="bold"
-        fill="black"
-        transform="rotate(19.5 85 55)">[% pct %]%</text>
-
-  [% ELSE %]
-  <!-- Level: just the base line -->
-  <line x1="15" y1="80" x2="105" y2="80" stroke="#111" stroke-width="3"/>
-
-  [% END %]
-
-  <text x="60" y="98"
-        text-anchor="middle"
-        font-size="16"
-        font-weight="bold"
-        fill="#333">[% Altitude | format('%.1f') %]m</text>
+        fill="#333">[% frame.location.altitude | format('%.1f') %]m</text>
 
 </svg>

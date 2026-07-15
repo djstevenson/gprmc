@@ -26,11 +26,6 @@ has location => (
     required    => 1,
 );
 
-has gradient => (
-    is          => 'ro',
-    isa         => 'Num',
-    required    => 0,
-);
 
 __PACKAGE__->meta->make_immutable;
 1;

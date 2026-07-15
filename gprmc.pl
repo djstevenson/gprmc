@@ -41,14 +41,13 @@ binmode STDIN, ':encoding(UTF-8)';
 use Frame;
 use Frame::Location;
 
-my @pos_history;  # ring buffer of positions; 10 samples = ~1 second at 0.1s/sample
 my %latest;
 my $fileno = 1;
-my $gradient_age = 25; # 10 samples per second.
-my $gradient = 0;
 my $limit = 30;
 
 my @frames;
+print "Generating 10fps\n";
+
 while (defined(my $line = <STDIN>)) {
     chomp $line;
 
@@ -57,17 +56,8 @@ while (defined(my $line = <STDIN>)) {
         $key =~ s/\W/_/g;
         $latest{$key} = $value;
         if ($key eq 'Track') {
-            if (@pos_history == $gradient_age) {
-                my $old = $frames[-$gradient_age];
-                $gradient = int(0.5 + gradient_percent(
-                    $old->location->latitude, $old->location->longitude, $old->location->altitude,
-                    $latest{Latitude}, $latest{Longitude}, $latest{Altitude}
-                )) if defined $old && defined $old->location->latitude && defined $old->location->longitude && defined $old->location->altitude;
-            }
-            $latest{Gradient} = $gradient;
             push @frames, Frame->new(
                 direction => $latest{Track},
-                gradient  => $latest{Gradient},
                 limit     => $limit,
                 speed     => $latest{Speed} * 0.621371, # kph to mph
                 location  => Frame::Location->new(
@@ -81,12 +71,15 @@ while (defined(my $line = <STDIN>)) {
 }
 
 # We now have 10 frames per second. Interpolate to 30 fps.
+print "Interpolating to 30fps\n";
 my @interpolated_frames = interpolate_frames(\@frames);
 
+print "Writing HTML\n";
 for my $frame (@interpolated_frames) {
     writeHTML($fileno, $frame);
     $fileno++;
 }
+print "Done\n";
 
 sub interpolate_frames($frames) {
     return () unless @$frames;
@@ -94,11 +87,11 @@ sub interpolate_frames($frames) {
     my @interpolated;
     for (my $i = 0; $i < @$frames; $i++) {
         my $current = $frames->[$i];
-        push @interpolated, $current;
 
         next if $i == @$frames - 1;
 
         my $next = $frames->[$i + 1];
+        my @subframes;
         for my $step (1, 2) {
             my $fraction = $step / 3;
             my $lat = $current->location->latitude + ($next->location->latitude - $current->location->latitude) * $fraction;
@@ -106,17 +99,17 @@ sub interpolate_frames($frames) {
             my $alt = $current->location->altitude + ($next->location->altitude - $current->location->altitude) * $fraction;
             my $spd = $current->speed + ($next->speed - $current->speed) * $fraction;
 
-            push @interpolated, Frame->new(
+            push @subframes, Frame->new(
                 direction => $current->direction + ($next->direction - $current->direction) * $fraction,
                 speed     => $spd,
                 limit     => $current->limit,
-                gradient  => $current->gradient + ($next->gradient - $current->gradient) * $fraction,
                 location  => Frame::Location->new(
                     latitude  => $lat,
                     longitude => $lon,
                     altitude  => $alt,
                 ),
             );
+            push @interpolated, $current, @subframes;
         }
     }
 
@@ -130,32 +123,6 @@ sub writeHTML($fileno, $frame) {
     my $html_filename = sprintf('output/%s/gauges%04d.html', $dir_no, $fileno);
     open(my $fh, '>:utf8', $html_filename);
 
-
     my $tt2 = Template->new({ INCLUDE_PATH => 'templates' });
     $tt2->process('main.tt2', {frame => $frame}, $fh) or die $tt2->error();
-}
-
-sub haversine_m {
-    my ($lat1, $lon1, $lat2, $lon2) = @_;
-    my $r = 6_371_000; # Earth radius in metres
-
-    my $phi1 = deg2rad($lat1);
-    my $phi2 = deg2rad($lat2);
-    my $dphi = deg2rad($lat2 - $lat1);
-    my $dlambda = deg2rad($lon2 - $lon1);
-
-    my $a = sin($dphi / 2) ** 2
-          + cos($phi1) * cos($phi2) * sin($dlambda / 2) ** 2;
-    my $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
-
-    return $r * $c;
-}
-
-sub gradient_percent {
-    my ($lat1, $lon1, $alt1, $lat2, $lon2, $alt2) = @_;
-
-    my $dist = haversine_m($lat1, $lon1, $lat2, $lon2);
-    return 0 if $dist < 1; # avoid madness when stationary / tiny movement
-
-    return (($alt2 - $alt1) / $dist) * 100;
 }

@@ -26,7 +26,7 @@ fs.mkdirSync(outputDir, { recursive: true });
     await page.goto(`file://${inputPath}`);
     await page.screenshot({ path: outputPath });
 
-    console.log(`${file} -> ${outputPath}`);
+    // console.log(`${file} -> ${outputPath}`);
   }
 
   await browser.close();
