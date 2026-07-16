@@ -1,6 +1,7 @@
 package Frame::Location;
 use Moose;
 use namespace::autoclean;
+use DBI;
 
 has latitude => (
     is          => 'ro',
@@ -19,6 +20,13 @@ has altitude => (
     isa         => 'Num',
     required    => 1,
 );
+
+has speed_limit => (
+    is          => 'ro',
+    isa         => 'Maybe[Str]',
+    required    => 1,
+);
+
 
 __PACKAGE__->meta->make_immutable;
 1;

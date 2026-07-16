@@ -70,7 +70,6 @@
         font-size="8"
         fill="#333">mph</text>
 
-  <!-- digital readout 
   <rect x="48" y="84" width="24" height="14"
         rx="3"
         fill="#eee"
@@ -79,7 +78,6 @@
   <text x="60" y="94"
         text-anchor="middle"
         font-size="8">
-    [% mph_display | format('%d') %]
+    [% frame.location.speed_limit %]
   </text>
-  -->
 </svg>

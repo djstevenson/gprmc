@@ -4,8 +4,8 @@
 
 
 run:
-	rm -rf gauges.mp4 gauges.mov output/* frames/* render-frames/*
-	carton exec -- ./gprmc.pl <arse.csv
+	rm -rf gauges.mp4 gauges.mov output/* frames/* render-frames/
+	carton exec -- ./clip_times.pl /Users/davids/Desktop/transport/Test\ footage/A4074\ subset/ | carton exec -- ./gprmc.pl
 	for d in output/[0-9][0-9]; do \
 		node render-frames.js "$$d" "frames/$$(basename "$$d")" & \
 	done; \
