@@ -1,8 +1,11 @@
 .PHONY: run
 
+#  carton exec -- ./clip_times.pl /Users/davids/Desktop/transport/Test\ footage/A4074\ 4k/ > arse.csv
+
+
 run:
 	rm -rf gauges.mp4 gauges.mov output/* frames/* render-frames/*
-	exiftool -ee -n 260627_175730_005_FH.MP4 | carton exec -- ./gprmc.pl
+	carton exec -- ./gprmc.pl <arse.csv
 	for d in output/[0-9][0-9]; do \
 		node render-frames.js "$$d" "frames/$$(basename "$$d")" & \
 	done; \

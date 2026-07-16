@@ -98,9 +98,12 @@ for my $filename (@files) {
         elsif ($line =~ /^GPS \s Altitude  \s* : \s* ($num)/x)  { $last{altitude}  = $1 }
         elsif ($line =~ /^GPS \s Speed     \s* : \s* ($num)/x)  { $last{speed}     = $1 }
         elsif ($line =~ /^GPS \s Track     \s* : \s* ($num)/x) {
-            # End of a GPS sample: commit the last values we saw.
+            # End of a GPS sample: commit the last values we saw. Skip
+            # incomplete samples (at the start of a recording, some fields may
+            # not have appeared yet).
             die "GPS Track without preceding GPS Date/Time in $path\n"
                 unless defined $last_datetime;
+            next if grep { !defined $last{$_} } qw(latitude longitude altitude speed);
             push @samples, {
                 datetime => $last_datetime,
                 track    => $1,

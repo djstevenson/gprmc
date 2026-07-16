@@ -7,3 +7,4 @@ requires 'Mojolicious';
 requires 'Template::Toolkit';
 requires 'Moose';
 requires 'namespace::autoclean';
+requires 'Text::CSV_XS';
