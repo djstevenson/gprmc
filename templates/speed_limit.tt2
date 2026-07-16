@@ -1,0 +1,12 @@
+<svg viewBox="0 0 120 120" width="140" height="140" role="img">
+  <circle cx="60" cy="60" r="52"
+          fill="white"
+          stroke="#cc0605"
+          stroke-width="12"/>
+
+  <text x="60" y="78"
+        text-anchor="middle"
+        font-size="52"
+        font-weight="bold"
+        fill="black">[% frame.location.speed_limit | html %]</text>
+</svg>

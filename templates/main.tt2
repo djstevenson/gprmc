@@ -18,6 +18,7 @@ body {
   border: 10px solid black;
   display: grid;
   grid-template-rows: 98px 864px 98px;
+  font-family: Helvetica, Arial, sans-serif;
 }
 
 .panel {
@@ -64,10 +65,14 @@ body {
         Gauges:
         <div id="gauges">
             <div class="panel">
-                [% INCLUDE compass.tt2 %]
                 [% INCLUDE speedo.tt2 %]
+                [% INCLUDE speed_limit.tt2 %]
             </div>
-            <div class="panel">[% INCLUDE gradient.tt2 %]</div>
+            <div class="panel">
+              [% INCLUDE gradient.tt2 %]
+              [% INCLUDE compass.tt2 %]
+
+              </div>
         </div>
         <div id="map-panel" class="panel">[% INCLUDE map.tt2 %]</div>
     </div>

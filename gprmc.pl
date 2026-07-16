@@ -52,7 +52,14 @@ while (my $row = $csv->getline_hr(*STDIN)) {
 
     $stm->execute($row->{longitude}, $row->{latitude});
     my ($new_maxspeed) = $stm->fetchrow_array;
-    $speed_limit = $new_maxspeed if defined $new_maxspeed;
+    if (defined $new_maxspeed) {
+        if ($new_maxspeed =~ m{\A(\d+) mph\Z} ) {
+            $speed_limit = $1;
+        }
+        else {
+            print "Unknown limit: $new_maxspeed\n";
+        }
+    }
 
     my $frame = Frame->new(
         direction => $row->{track},

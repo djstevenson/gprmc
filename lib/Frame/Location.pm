@@ -23,7 +23,7 @@ has altitude => (
 
 has speed_limit => (
     is          => 'ro',
-    isa         => 'Maybe[Str]',
+    isa         => 'Maybe[Int]',
     required    => 1,
 );
 

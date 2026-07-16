@@ -55,7 +55,7 @@
              opacity="0.25"/>
   </g>
 
-  <!-- centre boss -->
+  <!-- boss at centre -->
   <circle cx="60" cy="60" r="6"
           fill="#d8d8d8"
           stroke="#666"
@@ -65,19 +65,10 @@
           fill="white"
           opacity="0.55"/>
 
-  <text x="60" y="78"
+  <text x="60" y="84"
         text-anchor="middle"
         font-size="8"
         fill="#333">mph</text>
 
-  <rect x="48" y="84" width="24" height="14"
-        rx="3"
-        fill="#eee"
-        stroke="#999"/>
-
-  <text x="60" y="94"
-        text-anchor="middle"
-        font-size="8">
-    [% frame.location.speed_limit %]
-  </text>
 </svg>
+ 
