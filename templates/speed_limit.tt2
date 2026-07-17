@@ -4,9 +4,9 @@
           stroke="#cc0605"
           stroke-width="12"/>
 
-  <text x="60" y="78"
+  <text x="60" y="79"
         text-anchor="middle"
-        font-size="52"
+        font-size="54"
         font-weight="bold"
         fill="black">[% frame.location.speed_limit | html %]</text>
 </svg>
