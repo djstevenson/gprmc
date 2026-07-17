@@ -71,9 +71,11 @@ body {
             <div class="panel">
               [% INCLUDE gradient.tt2 %]
               [% INCLUDE compass.tt2 %]
-
-              </div>
+            </div>
         </div>
+          <div class="panel">
+            [% INCLUDE time.tt2 %]
+          </div>
         <div id="map-panel" class="panel">[% INCLUDE map.tt2 %]</div>
     </div>
   </div>

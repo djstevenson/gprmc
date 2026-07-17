@@ -1,0 +1,6 @@
+<p>
+Clock time: [% frame.timestamp | html %]
+</p>
+<p>
+Elapsed: [% frame.reltime_as_text | html %]
+</p>

@@ -7,6 +7,7 @@ use utf8;
 
 use FindBin::libs;
 use DateTime;
+use DateTime::Format::ISO8601;
 use DateTime::Format::ISO8601::Format;
 use Template;
 use Text::CSV_XS;
@@ -18,6 +19,7 @@ use Frame::Location;
 use DBI;
 
 my $speed_limit = undef;
+my $start_time = undef;
 
 binmode STDIN, ':encoding(UTF-8)';
 
@@ -61,7 +63,13 @@ while (my $row = $csv->getline_hr(*STDIN)) {
         }
     }
 
+    my $frame_time = DateTime::Format::ISO8601->parse_datetime($row->{timestamp}) or die;
+    my $rounded_time = $frame_time->clone->set_nanosecond(0);
+    $start_time = $rounded_time unless defined $start_time;
+    my $dd = $frame_time->subtract_datetime($start_time);
     my $frame = Frame->new(
+        timestamp => $frame_time,
+        reltime   => $frame_time->subtract_datetime($start_time->clone->set_nanosecond(0)),
         direction => $row->{track},
         speed     => $row->{speed} * 0.621371, # kph to mph
         limit     => 30,
