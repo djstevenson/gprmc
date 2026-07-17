@@ -9,17 +9,21 @@ use FindBin::libs;
 use DateTime;
 use DateTime::Format::ISO8601;
 use DateTime::Format::ISO8601::Format;
+use Math::Trig qw(great_circle_distance deg2rad pip2);
 use Template;
 use Text::CSV_XS;
 use Readonly;
 
 use Frame;
-use Frame::Location;
 
 use DBI;
 
+Readonly my $EARTH_RADIUS_M => 6_371_000;
+
 my $speed_limit = undef;
 my $start_time = undef;
+my $distance = 0;
+my $prev_position = undef;
 
 binmode STDIN, ':encoding(UTF-8)';
 
@@ -63,6 +67,12 @@ while (my $row = $csv->getline_hr(*STDIN)) {
         }
     }
 
+    my $position = [deg2rad($row->{longitude}), pip2 - deg2rad($row->{latitude})];
+    if (defined $prev_position) {
+        $distance += great_circle_distance(@$prev_position, @$position, $EARTH_RADIUS_M);
+    }
+    $prev_position = $position;
+
     my $frame_time = DateTime::Format::ISO8601->parse_datetime($row->{timestamp}) or die;
     my $rounded_time = $frame_time->clone->set_nanosecond(0);
     $start_time = $rounded_time unless defined $start_time;
@@ -73,12 +83,11 @@ while (my $row = $csv->getline_hr(*STDIN)) {
         direction => $row->{track},
         speed     => $row->{speed} * 0.621371, # kph to mph
         limit     => 30,
-        location  => Frame::Location->new(
-            latitude    => $row->{latitude},
-            longitude   => $row->{longitude},
-            altitude    => $row->{altitude},
-            speed_limit => $speed_limit,
-        ),
+        latitude    => $row->{latitude},
+        longitude   => $row->{longitude},
+        altitude    => $row->{altitude},
+        speed_limit => $speed_limit,
+        distance  => $distance,
     );
     writeHTML($fileno, $frame);
     $fileno++;

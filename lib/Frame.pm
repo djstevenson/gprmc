@@ -35,10 +35,48 @@ has speed => (
     required    => 1,
 );
 
-has location => (
+has latitude => (
     is          => 'ro',
-    isa         => 'Frame::Location',
+    isa         => 'Num',
     required    => 1,
+);
+
+has longitude => (
+    is          => 'ro',
+    isa         => 'Num',
+    required    => 1,
+);
+
+has altitude => (
+    is          => 'ro',
+    isa         => 'Num',
+    required    => 1,
+);
+
+has speed_limit => (
+    is          => 'ro',
+    isa         => 'Maybe[Int]',
+    required    => 1,
+);
+
+has distance => (
+    is          => 'ro',
+    isa         => 'Num',
+    required    => 1,
+);
+
+has distance_metres => (
+    is          => 'ro',
+    isa         => 'Num',
+    lazy        => 1,
+    default     => sub { return shift->distance; },
+);
+
+has distance_miles => (
+    is          => 'ro',
+    isa         => 'Num',
+    lazy        => 1,
+    default     => sub { return shift->distance / 1609.344; },
 );
 
 sub reltime_as_text {

@@ -8,6 +8,6 @@
         text-anchor="middle"
         font-size="16"
         font-weight="bold"
-        fill="black">[% frame.location.latitude >= 0 ? '+' : '' %][% frame.location.latitude | format('%.5f') %],&nbsp;[% frame.location.longitude >= 0 ? '+' : '' %][% frame.location.longitude | format('%.5f') %]</text>
+        fill="black">[% frame.latitude >= 0 ? '+' : '' %][% frame.latitude | format('%.5f') %],&nbsp;[% frame.longitude >= 0 ? '+' : '' %][% frame.longitude | format('%.5f') %]</text>
 
 </svg>

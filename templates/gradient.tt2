@@ -9,6 +9,6 @@
         text-anchor="middle"
         font-size="14"
         font-weight="bold"
-        fill="#333">[% frame.location.altitude | format('%.1f') %]m</text>
+        fill="#333">[% frame.altitude | format('%.1f') | html %]m</text>
 
 </svg>

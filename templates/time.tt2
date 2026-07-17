@@ -4,3 +4,9 @@ Clock time: [% frame.timestamp | html %]
 <p>
 Elapsed: [% frame.reltime_as_text | html %]
 </p>
+<p>
+Distance: [% frame.distance_metres | format('%d') | html %]m
+</p>
+<p>
+Distance: [% frame.distance_miles | format('%.1f') | html %] miles
+</p>

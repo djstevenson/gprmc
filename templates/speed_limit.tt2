@@ -8,5 +8,5 @@
         text-anchor="middle"
         font-size="54"
         font-weight="bold"
-        fill="black">[% frame.location.speed_limit | html %]</text>
+        fill="black">[% frame.speed_limit | html %]</text>
 </svg>
