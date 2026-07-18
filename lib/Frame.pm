@@ -97,9 +97,27 @@ has map_lines => (
     required    => 1,
 );
 
+has map_road_labels => (
+    is          => 'ro',
+    isa         => 'ArrayRef[HashRef]',
+    required    => 1,
+);
+
 has map_places => (
     is          => 'ro',
     isa         => 'ArrayRef[HashRef]',
+    required    => 1,
+);
+
+has marker_x => (
+    is          => 'ro',
+    isa         => 'Num',
+    required    => 1,
+);
+
+has marker_y => (
+    is          => 'ro',
+    isa         => 'Num',
     required    => 1,
 );
 

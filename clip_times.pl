@@ -162,13 +162,30 @@ for my $tick (0 .. $ticks) {
     elsif ($after) {
         my $at   = hires_epoch($after->{datetime});
         my $frac = ($t - $bt) / ($at - $bt);
-        @values  = map { $before->{$_} + $frac * ($after->{$_} - $before->{$_}) } @fields;
+        @values  = map {
+            $_ eq 'track'
+                ? interpolate_bearing($before->{$_}, $after->{$_}, $frac)
+                : $before->{$_} + $frac * ($after->{$_} - $before->{$_})
+        } @fields;
     }
     else {
         @values = @{$before}{@fields};    # final tick, nothing to interpolate to
     }
 
     say join ',', datetime_from_hires($t), @values;
+}
+
+# Interpolates a compass bearing (0..359.99) via the shortest angular path,
+# so a turn through north (e.g. 350 -> 10) doesn't get averaged the long way
+# round via 180, which is what a plain linear lerp would do.
+sub interpolate_bearing ($a, $b, $frac) {
+    my $delta = $b - $a;
+    $delta -= 360 if $delta > 180;
+    $delta += 360 if $delta < -180;
+    my $result = $a + $delta * $frac;
+    $result -= 360 if $result >= 360;
+    $result += 360 if $result < 0;
+    return $result;
 }
 
 # Seconds since the epoch, including the fractional (sub-second) part.

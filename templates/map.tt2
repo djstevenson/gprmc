@@ -19,14 +19,6 @@
   stroke-linejoin: round;
 }
 
-.road-minor {
-  fill: none;
-  stroke: #c7c0ac;
-  stroke-width: 1.5;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
 .place-label {
   font-family: sans-serif;
   fill: #4a4636;
@@ -34,7 +26,38 @@
   stroke: #eee8db;
   stroke-width: 3px;
   paint-order: stroke;
+  text-rendering: geometricPrecision;
 }
+
+.road-badge-motorway {
+  fill: #003c88;
+  stroke: #ffffff;
+  stroke-width: 0.75;
+}
+
+.road-badge-trunk {
+  fill: #00703c;
+  stroke: #ffffff;
+  stroke-width: 0.75;
+}
+
+.road-badge-other {
+  fill: #ffffff;
+  stroke: #333333;
+  stroke-width: 0.75;
+}
+
+.road-badge-text {
+  font-family: sans-serif;
+  font-weight: bold;
+  text-anchor: middle;
+  dominant-baseline: central;
+  text-rendering: geometricPrecision;
+}
+
+.road-badge-text-motorway { fill: #ffffff; }
+.road-badge-text-trunk    { fill: #ffcc00; }
+.road-badge-text-other    { fill: #000000; }
 </style>
 
 [% heading = frame.direction || 0 %]
@@ -48,13 +71,24 @@
     <polyline class="[% line.class %]" points="[% line.points %]"/>
   [% END %]
 
+  [% FOREACH label IN frame.map_road_labels %]
+    <g transform="translate([% label.x %] [% label.y %])">
+      <rect class="road-badge-[% label.style %]"
+            x="[% 0 - label.width / 2 %]" y="[% 0 - label.height / 2 %]"
+            width="[% label.width %]" height="[% label.height %]" rx="2" ry="2"/>
+      <text class="road-badge-text road-badge-text-[% label.style %]"
+            font-size="[% label.font_size %]">[% label.text | html %]</text>
+    </g>
+  [% END %]
+
   [% FOREACH place IN frame.map_places %]
     <text class="place-label" x="[% place.x %]" y="[% place.y %]"
           font-size="[% place.font_size %]">[% place.name | html %]</text>
   [% END %]
 
-  <!-- current position + heading, fixed at the centre -->
-  <g transform="translate([% frame.map_width / 2 %] [% frame.map_height / 2 %]) rotate([% heading | html %])">
+  <!-- current position + heading: the background is a periodic snapshot,
+       so the marker moves within it rather than staying pinned to centre -->
+  <g transform="translate([% frame.marker_x %] [% frame.marker_y %]) rotate([% heading | html %]) scale(1.5)">
     <polygon points="0,-9 4,7 0,4 -4,7" fill="#1a73e8" stroke="#0b3d91" stroke-width="1"/>
   </g>
 
