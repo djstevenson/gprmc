@@ -11,7 +11,10 @@ fs.mkdirSync(outputDir, { recursive: true });
   const browser = await chromium.launch();
   const page = await browser.newPage({
     viewport: { width: 1920, height: 1080 },
-    deviceScaleFactor: 1,
+    // Supersampled 4x and downscaled by ffmpeg at encode time, so text labels
+    // (which don't anti-alias sub-pixel positions as smoothly as vector
+    // strokes do) move more smoothly across frames.
+    deviceScaleFactor: 4,
   });
 
   const files = fs.readdirSync(inputDir)

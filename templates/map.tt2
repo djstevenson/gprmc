@@ -86,9 +86,8 @@
           font-size="[% place.font_size %]">[% place.name | html %]</text>
   [% END %]
 
-  <!-- current position + heading: the background is a periodic snapshot,
-       so the marker moves within it rather than staying pinned to centre -->
-  <g transform="translate([% frame.marker_x %] [% frame.marker_y %]) rotate([% heading | html %]) scale(1.5)">
+  <!-- current position + heading, fixed at the centre -->
+  <g transform="translate([% frame.map_width / 2 %] [% frame.map_height / 2 %]) rotate([% heading | html %]) scale(1.5)">
     <polygon points="0,-9 4,7 0,4 -4,7" fill="#1a73e8" stroke="#0b3d91" stroke-width="1"/>
   </g>
 

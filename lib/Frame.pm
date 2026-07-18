@@ -109,18 +109,6 @@ has map_places => (
     required    => 1,
 );
 
-has marker_x => (
-    is          => 'ro',
-    isa         => 'Num',
-    required    => 1,
-);
-
-has marker_y => (
-    is          => 'ro',
-    isa         => 'Num',
-    required    => 1,
-);
-
 sub reltime_as_text {
     my ($self) = @_;
 

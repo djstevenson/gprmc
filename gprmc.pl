@@ -27,13 +27,6 @@ Readonly my $MAP_HEIGHT_PX => 400;
 Readonly my $MAP_RADIUS_M  => 2_500; # metres shown in each direction from current position
 Readonly my $MAP_SCALE     => $MAP_WIDTH_PX / (2 * $MAP_RADIUS_M); # pixels per metre
 
-# The road/place background is expensive to fetch and, at 30fps, moves each
-# frame by a sub-pixel amount that text rendering can't track smoothly. So
-# instead we snapshot it and only re-fetch periodically, sliding just the
-# position marker across the frozen background between snapshots.
-Readonly my $MAP_RECENTRE_INTERVAL_S => 10; # re-fetch the background at least this often
-Readonly my $MAP_RECENTRE_MARGIN_M   => $MAP_RADIUS_M * 0.7; # ...or sooner if we drift this far from the last snapshot
-
 Readonly my %MAP_ROAD_CLASS => (
     motorway       => 'road-major',
     motorway_link  => 'road-major',
@@ -151,19 +144,7 @@ SQL
 
 my $places_stm = $dbh->prepare($MAP_PLACES_SQL);
 
-Readonly my $BNG_POSITION_SQL => <<'SQL';
-SELECT ST_X(t.geom) AS x, ST_Y(t.geom) AS y
-FROM (SELECT ST_Transform(ST_SetSRID(ST_MakePoint(?, ?), 4326), 27700) AS geom) t
-SQL
-
-my $bng_stm = $dbh->prepare($BNG_POSITION_SQL);
-
 my $fileno = 1;
-
-# Background snapshot state: the BNG position it was fetched at, when, and
-# the cached (already pixel-transformed) lines/labels/places themselves.
-my ($map_anchor_x, $map_anchor_y, $map_anchor_time);
-my ($cached_map_lines, $cached_map_road_labels, $cached_map_places) = ([], [], []);
 
 while (my $row = $csv->getline_hr(*STDIN)) {
 
@@ -178,24 +159,8 @@ while (my $row = $csv->getline_hr(*STDIN)) {
         }
     }
 
-    my $frame_time = DateTime::Format::ISO8601->parse_datetime($row->{timestamp}) or die;
-
-    $bng_stm->execute($row->{longitude}, $row->{latitude});
-    my ($bng_x, $bng_y) = $bng_stm->fetchrow_array;
-
-    my $need_recentre = !defined $map_anchor_time;
-    if (!$need_recentre) {
-        my $elapsed = $frame_time->epoch - $map_anchor_time->epoch;
-        my $drift = sqrt(($bng_x - $map_anchor_x)**2 + ($bng_y - $map_anchor_y)**2);
-        $need_recentre = 1 if $elapsed >= $MAP_RECENTRE_INTERVAL_S || $drift >= $MAP_RECENTRE_MARGIN_M;
-    }
-    if ($need_recentre) {
-        ($cached_map_lines, $cached_map_road_labels) = fetch_map_lines($map_stm, $row->{longitude}, $row->{latitude});
-        $cached_map_places = fetch_map_places($places_stm, $row->{longitude}, $row->{latitude});
-        ($map_anchor_x, $map_anchor_y) = ($bng_x, $bng_y);
-        $map_anchor_time = $frame_time;
-    }
-    my ($marker_x, $marker_y) = bng_to_pixel($bng_x, $bng_y, $map_anchor_x, $map_anchor_y);
+    my ($map_lines, $map_road_labels) = fetch_map_lines($map_stm, $row->{longitude}, $row->{latitude});
+    my $map_places = fetch_map_places($places_stm, $row->{longitude}, $row->{latitude});
 
     my $position = [deg2rad($row->{longitude}), pip2 - deg2rad($row->{latitude})];
     if (defined $prev_position) {
@@ -203,6 +168,7 @@ while (my $row = $csv->getline_hr(*STDIN)) {
     }
     $prev_position = $position;
 
+    my $frame_time = DateTime::Format::ISO8601->parse_datetime($row->{timestamp}) or die;
     my $rounded_time = $frame_time->clone->set_nanosecond(0);
     $start_time = $rounded_time unless defined $start_time;
     my $dd = $frame_time->subtract_datetime($start_time);
@@ -219,11 +185,9 @@ while (my $row = $csv->getline_hr(*STDIN)) {
         distance  => $distance,
         map_width  => $MAP_WIDTH_PX,
         map_height => $MAP_HEIGHT_PX,
-        map_lines  => $cached_map_lines,
-        map_road_labels => $cached_map_road_labels,
-        map_places => $cached_map_places,
-        marker_x   => $marker_x,
-        marker_y   => $marker_y,
+        map_lines  => $map_lines,
+        map_road_labels => $map_road_labels,
+        map_places => $map_places,
     );
     writeHTML($fileno, $frame);
     $fileno++;
@@ -231,10 +195,10 @@ while (my $row = $csv->getline_hr(*STDIN)) {
 
 print "Done\n";
 
-sub bng_to_pixel($x, $y, $anchor_x, $anchor_y) {
+sub bng_to_pixel($x, $y, $centre_x, $centre_y) {
     return (
-        ($x - $anchor_x) * $MAP_SCALE + $MAP_WIDTH_PX / 2,
-        $MAP_HEIGHT_PX / 2 - ($y - $anchor_y) * $MAP_SCALE,
+        ($x - $centre_x) * $MAP_SCALE + $MAP_WIDTH_PX / 2,
+        $MAP_HEIGHT_PX / 2 - ($y - $centre_y) * $MAP_SCALE,
     );
 }
 
