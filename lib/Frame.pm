@@ -65,11 +65,11 @@ has distance => (
     required    => 1,
 );
 
-has distance_metres => (
+has distance_km => (
     is          => 'ro',
     isa         => 'Num',
     lazy        => 1,
-    default     => sub { return shift->distance; },
+    default     => sub { return shift->distance / 1000.0; },
 );
 
 has distance_miles => (
@@ -77,6 +77,24 @@ has distance_miles => (
     isa         => 'Num',
     lazy        => 1,
     default     => sub { return shift->distance / 1609.344; },
+);
+
+has map_width => (
+    is          => 'ro',
+    isa         => 'Int',
+    required    => 1,
+);
+
+has map_height => (
+    is          => 'ro',
+    isa         => 'Int',
+    required    => 1,
+);
+
+has map_lines => (
+    is          => 'ro',
+    isa         => 'ArrayRef[HashRef]',
+    required    => 1,
 );
 
 sub reltime_as_text {

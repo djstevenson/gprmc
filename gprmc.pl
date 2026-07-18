@@ -10,6 +10,7 @@ use DateTime;
 use DateTime::Format::ISO8601;
 use DateTime::Format::ISO8601::Format;
 use Math::Trig qw(great_circle_distance deg2rad pip2);
+use Mojo::JSON qw(decode_json);
 use Template;
 use Text::CSV_XS;
 use Readonly;
@@ -19,6 +20,25 @@ use Frame;
 use DBI;
 
 Readonly my $EARTH_RADIUS_M => 6_371_000;
+
+# Map render settings - change these to resize the map or how much ground it covers.
+Readonly my $MAP_WIDTH_PX  => 400;
+Readonly my $MAP_HEIGHT_PX => 400;
+Readonly my $MAP_RADIUS_M  => 1_000; # metres shown in each direction from current position
+Readonly my $MAP_SCALE     => $MAP_WIDTH_PX / (2 * $MAP_RADIUS_M); # pixels per metre
+
+Readonly my %MAP_ROAD_CLASS => (
+    motorway       => 'road-major',
+    motorway_link  => 'road-major',
+    trunk          => 'road-major',
+    trunk_link     => 'road-major',
+    primary        => 'road-major',
+    primary_link   => 'road-major',
+    secondary      => 'road-medium',
+    secondary_link => 'road-medium',
+    tertiary       => 'road-medium',
+    tertiary_link  => 'road-medium',
+);
 
 my $speed_limit = undef;
 my $start_time = undef;
@@ -52,6 +72,27 @@ SQL
 
 my $stm = $dbh->prepare($SPEED_LIMIT_SQL);
 
+Readonly my $MAP_LINES_SQL => <<'SQL';
+WITH centre AS (
+    SELECT ST_Transform(
+        ST_SetSRID(ST_MakePoint(?, ?), 4326),
+        27700
+    ) AS geom
+),
+bbox AS (
+    SELECT ST_Expand(centre.geom, ?) AS geom FROM centre
+)
+SELECT
+    r.highway,
+    ST_X(centre.geom) AS centre_x,
+    ST_Y(centre.geom) AS centre_y,
+    ST_AsGeoJSON(ST_Intersection(r.geom_bng, bbox.geom)) AS geojson
+FROM osm_roads r, bbox, centre
+WHERE r.geom_bng && bbox.geom
+SQL
+
+my $map_stm = $dbh->prepare($MAP_LINES_SQL);
+
 my $fileno = 1;
 
 while (my $row = $csv->getline_hr(*STDIN)) {
@@ -66,6 +107,8 @@ while (my $row = $csv->getline_hr(*STDIN)) {
             print "Unknown limit: $new_maxspeed\n";
         }
     }
+
+    my $map_lines = fetch_map_lines($map_stm, $row->{longitude}, $row->{latitude});
 
     my $position = [deg2rad($row->{longitude}), pip2 - deg2rad($row->{latitude})];
     if (defined $prev_position) {
@@ -88,12 +131,44 @@ while (my $row = $csv->getline_hr(*STDIN)) {
         altitude    => $row->{altitude},
         speed_limit => $speed_limit,
         distance  => $distance,
+        map_width  => $MAP_WIDTH_PX,
+        map_height => $MAP_HEIGHT_PX,
+        map_lines  => $map_lines,
     );
     writeHTML($fileno, $frame);
     $fileno++;
 }
 
 print "Done\n";
+
+sub fetch_map_lines($map_stm, $longitude, $latitude) {
+    $map_stm->execute($longitude, $latitude, $MAP_RADIUS_M);
+
+    my @lines;
+    while (my $row = $map_stm->fetchrow_hashref) {
+        my $geom = decode_json($row->{geojson});
+        my @parts = $geom->{type} eq 'MultiLineString' ? @{$geom->{coordinates}}
+                  : $geom->{type} eq 'LineString'      ? ($geom->{coordinates})
+                  :                                       ();
+
+        for my $part (@parts) {
+            next if @$part < 2;
+            my $points = join ' ', map {
+                my ($x, $y) = @$_;
+                sprintf('%.1f,%.1f',
+                    ($x - $row->{centre_x}) * $MAP_SCALE + $MAP_WIDTH_PX / 2,
+                    $MAP_HEIGHT_PX / 2 - ($y - $row->{centre_y}) * $MAP_SCALE,
+                );
+            } @$part;
+            push @lines, {
+                class  => $MAP_ROAD_CLASS{$row->{highway}} // 'road-minor',
+                points => $points,
+            };
+        }
+    }
+
+    return \@lines;
+}
 
 sub writeHTML($fileno, $frame) {
     mkdir 'output' unless -d 'output';

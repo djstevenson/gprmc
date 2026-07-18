@@ -1,12 +1,93 @@
 <p>
 Clock time: [% frame.timestamp | html %]
 </p>
+<style>
+.digital-clock {
+  display: inline-flex;
+  align-items: center;
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+  font-size: 28px;
+  background: #001a00;
+  border: 3px solid #333;
+  border-radius: 4px;
+  padding: 4px 8px;
+  letter-spacing: 1px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.8);
+  vertical-align: middle;
+}
+
+.clock-digit {
+  display: inline-block;
+  width: 1.1ch;
+  text-align: center;
+  color: #33ff55;
+  text-shadow: 0 0 4px #33ff55, 0 0 10px rgba(51, 255, 85, 0.6);
+}
+
+.clock-colon {
+  display: inline-block;
+  width: 0.6ch;
+  text-align: center;
+  color: #33ff55;
+  text-shadow: 0 0 4px #33ff55, 0 0 10px rgba(51, 255, 85, 0.6);
+  animation: clock-blink 1s steps(1, start) infinite;
+}
+
+@keyframes clock-blink {
+  50% { opacity: 0.2; }
+}
+</style>
+[% elapsed_str = frame.reltime_as_text %]
 <p>
-Elapsed: [% frame.reltime_as_text | html %]
+Elapsed:
+<span class="digital-clock">[% FOREACH ch IN elapsed_str.split('') %][% IF ch == ':' %]<span class="clock-colon">:</span>[% ELSE %]<span class="clock-digit">[% ch | html %]</span>[% END %][% END %]</span>
 </p>
+<style>
+.odometer {
+  display: inline-flex;
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+  font-size: 28px;
+  border: 3px solid #333;
+  border-radius: 3px;
+  overflow: hidden;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.7);
+  vertical-align: middle;
+}
+
+.odo-digit {
+  display: inline-block;
+  width: 2ch;
+  padding: 3px 4px;
+  text-align: center;
+  background: linear-gradient(to bottom, #333 0%, #000 45%, #000 55%, #333 100%);
+  color: #fff;
+  border-right: 1px solid #444;
+}
+
+.odo-digit.odo-frac{
+  background: linear-gradient(to bottom, #ddd 0%, #fff 45%, #fff 55%, #ddd 100%);
+  color: #000;
+  border-left: 2px solid #333;
+  border-right: none;
+}
+</style>
+[% miles_str = frame.distance_miles | format('%06.1f') %]
+[% whole_miles = miles_str.split('\.').0 %]
+[% frac_miles = miles_str.split('\.').1 %]
+[% km_str = frame.distance_km | format('%06.1f') %]
+[% whole_km = km_str.split('\.').0 %]
+[% frac_km = km_str.split('\.').1 %]
+
 <p>
-Distance: [% frame.distance_metres | format('%d') | html %]m
+Distance:
+<span class="odometer">[% FOREACH digit IN whole_km.split('') %]<span class="odo-digit">[% digit | html %]</span>[% END %]<span class="odo-digit odo-frac">[% frac_km | html %]</span></span>
+km
 </p>
+
 <p>
-Distance: [% frame.distance_miles | format('%.1f') | html %] miles
+Distance:
+<span class="odometer">[% FOREACH digit IN whole_miles.split('') %]<span class="odo-digit">[% digit | html %]</span>[% END %]<span class="odo-digit odo-frac">[% frac_miles | html %]</span></span>
+miles
 </p>

@@ -1,13 +1,47 @@
-<svg viewBox="0 0 320 185" width="320" height="185" role="img">
+<style>
+.map-base {
+  fill: #eee8db;
+}
 
-  <!-- map placeholder -->
-  <rect x="0" y="0" width="320" height="160" fill="#888"/>
+.road-major {
+  fill: none;
+  stroke: #e8a33d;
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
 
-  <!-- lat/long -->
-  <text x="160" y="178"
-        text-anchor="middle"
-        font-size="16"
-        font-weight="bold"
-        fill="black">[% frame.latitude >= 0 ? '+' : '' %][% frame.latitude | format('%.5f') %],&nbsp;[% frame.longitude >= 0 ? '+' : '' %][% frame.longitude | format('%.5f') %]</text>
+.road-medium {
+  fill: none;
+  stroke: #ffffff;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.road-minor {
+  fill: none;
+  stroke: #c7c0ac;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+</style>
+
+[% heading = frame.direction || 0 %]
+
+<svg viewBox="0 0 [% frame.map_width %] [% frame.map_height %]"
+     width="[% frame.map_width %]" height="[% frame.map_height %]" role="img">
+
+  <rect class="map-base" x="0" y="0" width="[% frame.map_width %]" height="[% frame.map_height %]"/>
+
+  [% FOREACH line IN frame.map_lines %]
+    <polyline class="[% line.class %]" points="[% line.points %]"/>
+  [% END %]
+
+  <!-- current position + heading, fixed at the centre -->
+  <g transform="translate([% frame.map_width / 2 %] [% frame.map_height / 2 %]) rotate([% heading | html %])">
+    <polygon points="0,-9 4,7 0,4 -4,7" fill="#1a73e8" stroke="#0b3d91" stroke-width="1"/>
+  </g>
 
 </svg>
