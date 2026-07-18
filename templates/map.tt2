@@ -26,6 +26,15 @@
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+
+.place-label {
+  font-family: sans-serif;
+  fill: #4a4636;
+  text-anchor: middle;
+  stroke: #eee8db;
+  stroke-width: 3px;
+  paint-order: stroke;
+}
 </style>
 
 [% heading = frame.direction || 0 %]
@@ -37,6 +46,11 @@
 
   [% FOREACH line IN frame.map_lines %]
     <polyline class="[% line.class %]" points="[% line.points %]"/>
+  [% END %]
+
+  [% FOREACH place IN frame.map_places %]
+    <text class="place-label" x="[% place.x %]" y="[% place.y %]"
+          font-size="[% place.font_size %]">[% place.name | html %]</text>
   [% END %]
 
   <!-- current position + heading, fixed at the centre -->

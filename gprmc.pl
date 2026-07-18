@@ -40,6 +40,13 @@ Readonly my %MAP_ROAD_CLASS => (
     tertiary_link  => 'road-medium',
 );
 
+Readonly my %MAP_PLACE_FONT_SIZE => (
+    city    => 22,
+    town    => 16,
+    village => 13,
+    hamlet  => 11,
+);
+
 my $speed_limit = undef;
 my $start_time = undef;
 my $distance = 0;
@@ -84,6 +91,7 @@ bbox AS (
 )
 SELECT
     r.highway,
+    r.ref,
     ST_X(centre.geom) AS centre_x,
     ST_Y(centre.geom) AS centre_y,
     ST_AsGeoJSON(ST_Intersection(r.geom_bng, bbox.geom)) AS geojson
@@ -92,6 +100,30 @@ WHERE r.geom_bng && bbox.geom
 SQL
 
 my $map_stm = $dbh->prepare($MAP_LINES_SQL);
+
+Readonly my $MAP_PLACES_SQL => <<'SQL';
+WITH centre AS (
+    SELECT ST_Transform(
+        ST_SetSRID(ST_MakePoint(?, ?), 4326),
+        27700
+    ) AS geom
+),
+bbox AS (
+    SELECT ST_Expand(centre.geom, ?) AS geom FROM centre
+)
+SELECT
+    p.name,
+    p.place,
+    ST_X(centre.geom) AS centre_x,
+    ST_Y(centre.geom) AS centre_y,
+    ST_X(p.geom_bng) AS x,
+    ST_Y(p.geom_bng) AS y
+FROM osm_places p, bbox, centre
+WHERE p.geom_bng && bbox.geom
+  AND p.name IS NOT NULL
+SQL
+
+my $places_stm = $dbh->prepare($MAP_PLACES_SQL);
 
 my $fileno = 1;
 
@@ -109,6 +141,7 @@ while (my $row = $csv->getline_hr(*STDIN)) {
     }
 
     my $map_lines = fetch_map_lines($map_stm, $row->{longitude}, $row->{latitude});
+    my $map_places = fetch_map_places($places_stm, $row->{longitude}, $row->{latitude});
 
     my $position = [deg2rad($row->{longitude}), pip2 - deg2rad($row->{latitude})];
     if (defined $prev_position) {
@@ -134,6 +167,7 @@ while (my $row = $csv->getline_hr(*STDIN)) {
         map_width  => $MAP_WIDTH_PX,
         map_height => $MAP_HEIGHT_PX,
         map_lines  => $map_lines,
+        map_places => $map_places,
     );
     writeHTML($fileno, $frame);
     $fileno++;
@@ -168,6 +202,22 @@ sub fetch_map_lines($map_stm, $longitude, $latitude) {
     }
 
     return \@lines;
+}
+
+sub fetch_map_places($places_stm, $longitude, $latitude) {
+    $places_stm->execute($longitude, $latitude, $MAP_RADIUS_M);
+
+    my @places;
+    while (my $row = $places_stm->fetchrow_hashref) {
+        push @places, {
+            name      => $row->{name},
+            font_size => $MAP_PLACE_FONT_SIZE{$row->{place}} // 11,
+            x         => ($row->{x} - $row->{centre_x}) * $MAP_SCALE + $MAP_WIDTH_PX / 2,
+            y         => $MAP_HEIGHT_PX / 2 - ($row->{y} - $row->{centre_y}) * $MAP_SCALE,
+        };
+    }
+
+    return \@places;
 }
 
 sub writeHTML($fileno, $frame) {

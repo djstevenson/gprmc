@@ -97,6 +97,12 @@ has map_lines => (
     required    => 1,
 );
 
+has map_places => (
+    is          => 'ro',
+    isa         => 'ArrayRef[HashRef]',
+    required    => 1,
+);
+
 sub reltime_as_text {
     my ($self) = @_;
 
