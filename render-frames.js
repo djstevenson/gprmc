@@ -2,10 +2,12 @@ const { chromium } = require('playwright');
 const fs = require('fs');
 const path = require('path');
 
-const inputDir = process.argv[2] || '.';
-const outputDir = process.argv[3] || 'frames';
+const dir = process.argv[2] || '.';
+const digit = process.argv[3];
 
-fs.mkdirSync(outputDir, { recursive: true });
+if (!/^[0-9a-f]$/.test(digit)) {
+  throw new Error(`expected a single hex digit argument (0-9a-f), got ${JSON.stringify(digit)}`);
+}
 
 (async () => {
   const browser = await chromium.launch();
@@ -17,17 +19,17 @@ fs.mkdirSync(outputDir, { recursive: true });
     deviceScaleFactor: 4,
   });
 
-  const files = fs.readdirSync(inputDir)
-    .filter(f => /^gauges\d+\.html$/.test(f))
+  const suffix = new RegExp(`${digit}\\.html$`);
+  const files = fs.readdirSync(dir)
+    .filter(f => suffix.test(f))
     .sort();
 
-  for (let i = 0; i < files.length; i++) {
-    const file = files[i];
-    const inputPath = path.resolve(inputDir, file);
-    const outputPath = path.join(outputDir, `frame${String(i + 1).padStart(6, '0')}.png`);
+  for (const file of files) {
+    const inputPath = path.resolve(dir, file);
+    const outputPath = path.join(dir, file.replace(/\.html$/, '.png'));
 
     await page.goto(`file://${inputPath}`);
-    await page.screenshot({ path: outputPath });
+    await page.screenshot({ path: outputPath, omitBackground: true });
 
     // console.log(`${file} -> ${outputPath}`);
   }

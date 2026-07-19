@@ -193,7 +193,7 @@ while (my $row = $csv->getline_hr(*STDIN)) {
     $fileno++;
 }
 
-print "Done\n";
+exit 0;
 
 sub bng_to_pixel($x, $y, $centre_x, $centre_y) {
     return (
@@ -264,10 +264,9 @@ sub fetch_map_places($places_stm, $longitude, $latitude) {
 }
 
 sub writeHTML($fileno, $frame) {
-    mkdir 'output' unless -d 'output';
-    my $dir_no = sprintf('%02d', int($fileno / 1_000));
-    mkdir "output/$dir_no" unless -d "output/$dir_no";
-    my $html_filename = sprintf('output/%s/gauges%05d.html', $dir_no, $fileno);
+    mkdir 'html' unless -d 'html';
+    mkdir 'html/telemetry' unless -d 'frames/telemetry';
+    my $html_filename = sprintf('frames/telemetry/gauges%06x.html', $fileno);
     open(my $fh, '>:utf8', $html_filename);
 
     my $tt2 = Template->new({ INCLUDE_PATH => 'templates' });

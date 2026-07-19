@@ -1,15 +1,35 @@
-.PHONY: run
+.PHONY: cleanup run main text
 
-#  carton exec -- ./clip_times.pl /Users/davids/Desktop/transport/Test\ footage/A4074\ 4k/ > arse.csv
+run: cleanup text main
 
+cleanup:
+	rm -rf frames
+	mkdir frames
 
-run:
-	rm -rf gauges.mp4 gauges.mov output/* frames/* render-frames/
+main:
+	rm -rf frames/telemetry
+	mkdir -p frames/telemetry
+	date
 	carton exec -- ./clip_times.pl /Users/davids/Desktop/transport/Test\ footage/A4074\ subset/ | carton exec -- ./gprmc.pl
-	for d in output/[0-9][0-9]; do \
-		node render-frames.js "$$d" "frames/$$(basename "$$d")" & \
+	date
+	for x in 0 1 2 3 4 5 6 7 8 9 a b c d e f; do \
+		node render-frames.js "frames/telemetry" "$$x" & \
 	done; \
 	wait
-	mkdir -p render-frames
-	n=1; find frames -type f -name '*.png' | sort | while read -r f; do ln -sf "$$PWD/$$f" "$$(printf 'render-frames/frame%06d.png' $$n)"; n=$$((n + 1)); done
-	ffmpeg -framerate 30 -i render-frames/frame%06d.png -vf "scale=1920:1080:flags=lanczos" -c:v prores_ks -profile:v 3 -pix_fmt yuv422p10le gauges.mov
+	date
+	ffmpeg -framerate 30 -pattern_type glob -i 'frames/telemetry/gauges*.png' -vf "scale=1920:1080:flags=lanczos" -c:v prores_ks -profile:v 3 -pix_fmt yuv422p10le 'frames/telemetry/gauges.mov'
+	date
+
+text:
+	rm -rf frames/text
+	date
+	cat A4074.csv | carton exec -- ./make_text.pl
+	date
+	for d in frames/text/*; do \
+		for x in 0 1 2 3 4 5 6 7 8 9 a b c d e f; do \
+			node render-frames.js "$$d" "$$x" & \
+		done; \
+		wait; \
+		ffmpeg -framerate 30 -pattern_type glob -i "$$d/*.png" -vf "scale=1920:1080:flags=lanczos" -c:v prores_ks -profile:v 4 -pix_fmt yuva444p10le "$$d.mov"; \
+	done
+	date

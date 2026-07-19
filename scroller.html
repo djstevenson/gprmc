@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+<head>
+<style>
+html, body {
+  margin: 0;
+  width: 1920px;
+  height: 1080px;
+  overflow: hidden;
+}
+
+body {
+  background: #111111;
+  border: 10px solid black;
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 24px;
+  width: 100%;
+}
+
+.panel {
+  background: #000;
+  border-top: 1px solid #0c0;
+  border-bottom: 1px solid #0c0;
+  height: 42px;
+  position: relative;
+}
+
+.panel .text {
+  position: absolute;
+  top: 50%;
+  left: 0px;
+  transform: translateY(-50%);
+  white-space: nowrap;
+  color: yellow;
+}
+</style>
+</head>
+
+<body>
+  <div id="Scroller" class="panel">
+     <!--span class="text" style="left: 0px">[% frame.text %]</span-->
+  </div>
+</body>
+</html>

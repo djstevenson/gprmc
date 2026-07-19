@@ -49,12 +49,8 @@ tags
 
 /node_modules
 
-/output
 
 *.MP4
 /frames
-/render-frames
-gauges.mp4
-gauges.mov
 
 /osm_data
