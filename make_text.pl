@@ -63,7 +63,7 @@ sub measure_text_width {
 sub writeHTML {
     my ($dir, $height, $pos, $offset, $text) = @_;
 
-    my $html_filename = sprintf('%s/frame_%06x.html', $dir, $pos);
+    my $html_filename = sprintf('%s/frame_%07d.html', $dir, $pos);
     open(my $fh, '>:utf8', $html_filename);
 
     my $text_frame = TextFrame->new({
