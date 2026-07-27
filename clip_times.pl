@@ -56,6 +56,7 @@ closedir $dh;
 # Keyed by filename.
 my %file_samples;
 
+print STDERR "EXIFTOOL $dir_name\n";
 for my $filename (@files) {
     my $path = "$dir_name/$filename";
     open my $exif, '-|', 'exiftool', '-ee', '-n', $path
@@ -73,7 +74,6 @@ for my $filename (@files) {
             (\d{4}):(\d\d):(\d\d) \s+ (\d\d):(\d\d):(\d\d)(\.\d+)?Z/x) {
             my ($year, $month, $day, $hour, $min, $sec, $frac) =
                 ($1, $2, $3, $4, $5, $6, $7 // 0);
-
             # The GPS data is sampled at 10Hz, so round to the nearest 0.1s:
             # the odd off-grid timestamp (e.g. 14:44:31.109Z) is close enough,
             # and snapping it to the grid means less interpolation later.
@@ -143,6 +143,7 @@ my $ticks = int(($last - $first) * $frame_rate + 0.5);
 
 my $j = 0;    # index of the merged sample at or just before the current tick
 for my $tick (0 .. $ticks) {
+    print STDERR "Tick ", $tick+1, " of $ticks\n" if ($tick % 1000) == 0;
     my $t = $first + $tick / $frame_rate;
 
     # Advance so $merged[$j] is the last sample at or before $t.
