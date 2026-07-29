@@ -30,6 +30,7 @@ text:
 			node render-frames.js "$$d" "$$x" & \
 		done; \
 		wait; \
+		date; \
 		ffmpeg -framerate 30 -pattern_type glob -i "$$d/*.png" -vf "scale=1920:1080:flags=lanczos" -c:v prores_ks -profile:v 4 -pix_fmt yuva444p10le "$$d.mov"; \
 	done
 	date

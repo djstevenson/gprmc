@@ -146,7 +146,10 @@ my $places_stm = $dbh->prepare($MAP_PLACES_SQL);
 
 my $fileno = 1;
 
+my $c = 0;
 while (my $row = $csv->getline_hr(*STDIN)) {
+    $c++;
+    printf("%s : %d\n", scalar(localtime(time)), $c) if ($c % 1_000) == 0;
 
     $stm->execute($row->{longitude}, $row->{latitude});
     my ($new_maxspeed) = $stm->fetchrow_array;

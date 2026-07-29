@@ -54,3 +54,7 @@ tags
 /frames
 
 /osm_data
+
+__pycache__/
+route-map.png
+
