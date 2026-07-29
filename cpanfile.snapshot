@@ -844,6 +844,15 @@ DISTRIBUTIONS
       File::Path 0
       File::Spec 0
       perl 5.008000
+  File-Share-0.27
+    pathname: I/IN/INGY/File-Share-0.27.tar.gz
+    provides:
+      File::Share 0.27
+    requirements:
+      ExtUtils::MakeMaker 0
+      File::ShareDir 1.03
+      Readonly 2.05
+      perl 5.008001
   File-ShareDir-1.118
     pathname: R/RE/REHSACK/File-ShareDir-1.118.tar.gz
     provides:
@@ -893,6 +902,16 @@ DISTRIBUTIONS
       Test::More 0
       strict 0
       version 0
+  Geo-Coordinates-OSGB-2.20
+    pathname: T/TO/TOBY/Geo-Coordinates-OSGB-2.20.tar.gz
+    provides:
+      Geo::Coordinates::OSGB 2.20
+      Geo::Coordinates::OSGB::Grid 2.20
+      Geo::Coordinates::OSGB::Maps 2.20
+    requirements:
+      ExtUtils::MakeMaker 0
+      File::Share 0.25
+      File::ShareDir::Install 0.06
   MRO-Compat-0.15
     pathname: H/HA/HAARG/MRO-Compat-0.15.tar.gz
     provides:

@@ -12,6 +12,7 @@ use utf8;
 use FindBin::libs;
 use DateTime;
 use DateTime::Format::ISO8601::Format;
+use Geo::Coordinates::OSGB qw(ll_to_grid);
 
 binmode STDIN, ':encoding(UTF-8)';
 
@@ -135,7 +136,7 @@ for my $filename (@files) {
 # Emit one CSV row per tick between the first and last timestamp. Where a real
 # sample lands on a tick (within the jitter tolerance) we use it directly;
 # otherwise we linearly interpolate between the samples bracketing the tick.
-say join ',', 'timestamp', @fields;
+say join ',', 'timestamp', @fields, 'easting', 'northing';
 
 my $first = hires_epoch($merged[0]{datetime});
 my $last  = hires_epoch($merged[-1]{datetime});
@@ -173,7 +174,8 @@ for my $tick (0 .. $ticks) {
         @values = @{$before}{@fields};    # final tick, nothing to interpolate to
     }
 
-    say join ',', datetime_from_hires($t), @values;
+    my ($easting, $northing) = ll_to_grid(@values[0, 1]);    # latitude, longitude
+    say join ',', datetime_from_hires($t), @values, $easting, $northing;
 }
 
 # Interpolates a compass bearing (0..359.99) via the shortest angular path,

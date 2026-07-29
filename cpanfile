@@ -12,3 +12,5 @@ requires 'Moose';
 requires 'namespace::autoclean';
 requires 'Text::CSV_XS';
 requires 'Readonly';
+requires 'Mojolicious';
+requires 'Geo::Coordinates::OSGB';
